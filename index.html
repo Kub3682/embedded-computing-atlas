@@ -1,0 +1,543 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>计算的本质｜从需求推导嵌入式系统</title>
+<style>
+:root{color-scheme:dark;background:#101823;color:#e6edf5;font:17px/1.75 system-ui,sans-serif}
+body{max-width:1040px;margin:auto;padding:clamp(16px,4vw,48px)}
+h1,h2,h3{line-height:1.3} h1{font-size:clamp(2rem,6vw,4rem);margin:.2em 0}
+a{color:#80e3cc} header,section,nav{padding:clamp(16px,3vw,32px);border:1px solid #354458;border-radius:16px;margin-bottom:20px;background:#172332}
+nav ol{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px}
+.eyebrow,.next{color:#80e3cc}.lead{max-width:46em;color:#c6d5e5}
+label{display:inline-block;margin:6px 12px 6px 0} input{width:5em;font:inherit}
+output{display:block;white-space:pre-wrap;background:#0e1722;padding:14px;border-radius:8px}
+details{border-top:1px solid #354458;padding-top:12px} summary{cursor:pointer;color:#80e3cc}
+code{color:#ffda96} section:target{border-color:#80e3cc}
+.chain{display:flex;flex-wrap:wrap;align-items:center;gap:12px}
+.chain>a,.tiles>div{border:1px solid #506680;border-radius:10px;padding:12px}
+.tiles b,.tiles small{display:block}.tiles b,.digits output{font-size:1.4rem}
+.model{display:grid;grid-template-columns:auto 1fr;align-items:center;gap:8px 16px;margin-bottom:12px}
+.model output{padding:4px 14px} button{font:inherit;padding:6px 14px;cursor:pointer}
+.tape{display:flex;gap:5px;margin:12px 0}.tape span{display:grid;place-items:center;width:2em;height:2em;border:1px solid #506680;font:1.3rem monospace}
+.current{background:#26514d;color:#d8fff5}.cpu-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px;margin:12px 0}
+table{border-collapse:collapse}th,td{text-align:left;padding:3px 12px;border-bottom:1px solid #354458}
+.cpu-grid output{display:inline;padding:3px 8px;font-family:monospace}
+.bench{display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:center;margin:12px 0}.bar{display:flex;height:1.25em;background:#101823}.bar span{display:block}.bar span:nth-child(1){background:#80e3cc}.bar span:nth-child(2){background:#b39af4}.bar span:nth-child(3){background:#f5be78}.bar span:nth-child(4){background:#83bbff}
+.execution{margin:20px 0;padding:16px;border:1px solid #506680;border-radius:12px}
+#hardware-lanes{margin-top:12px}#hardware-lanes>div{transition:background-color .2s}
+#hardware-frame{min-height:3em}
+@media(prefers-reduced-motion:reduce){#hardware-lanes>div{transition:none}}
+:root{color-scheme:light;background:#f2f4fa;color:#17213a}
+header,section,nav{background:#fff;border-color:#dce2f0;box-shadow:0 8px 26px #202d5010}
+header{background:linear-gradient(120deg,#edf0ff,#ffffff 60%,#e8faf8)}
+.eyebrow,.next,summary,a{color:#414ab8}.lead{color:#485777}code{color:#6140a0}
+output{background:#edf0fa}.current{background:#d8e2ff;color:#242b73}
+.chain>a,.tiles>div,.execution{border-color:#d5ddef}
+.execution{background:#f8f9ff;padding:clamp(12px,3vw,24px)}
+.hardware-tabs,.timeline{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+button{border:1px solid #c9d1e9;border-radius:8px;background:#fff;color:#263350}
+button[aria-pressed="true"],#hardware-play{background:#414ab8;color:#fff;border-color:#414ab8}
+.stage{overflow:auto;background:radial-gradient(#dce2f1 1px,transparent 1px) 0 0/14px 14px,#fff;border:1px solid #dce2f0;border-radius:12px;margin:12px 0}
+#hardware-lanes{display:block;width:100%;min-width:540px;margin:0}
+#hardware-lanes text{text-anchor:middle;fill:#34416b;font:14px system-ui,sans-serif}
+#hardware-lanes rect{fill:#f3f5fc;stroke:#cdd6ef}
+#hardware-lanes .lit rect{fill:#e6e8ff;stroke:#626ce1;stroke-width:2}
+#hardware-lanes path{fill:none;stroke-width:3}
+#hardware-lanes .wire{stroke:#dce3f6}
+#hardware-lanes .live{stroke:#5a64e1;stroke-dasharray:5 9; } #hardware-lanes.running .live{animation:travel .65s linear infinite}
+@keyframes travel{to{stroke-dashoffset:-28}}
+@media(prefers-reduced-motion:reduce){#hardware-lanes.running .live{animation:none}}
+#hardware-frame{min-height:1.8em;color:#414ab8}
+.players{margin-top:14px}.players p{margin:.7em 0}
+.product-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(205px,1fr));gap:12px;margin:12px 0}
+.product-grid article{background:#f2f5ff;border:1px solid #dce2f0;border-radius:12px;padding:14px}
+.product-grid article:nth-child(2){background:#eaf8f6}.product-grid article:nth-child(3){background:#faf5e7}
+.product-grid small{display:block;color:#465676}
+</style>
+<body>
+<main>
+<header id="top">
+<div class="eyebrow">嵌入式产品认知体系 · 从计算之前开始</div>
+<h1>计算的本质</h1>
+<p class="lead">从记账到 CPU · 每一站看人把哪一步交给工具。</p><p><small>沿需求推导机制。历史上，不同工具可以并存，演进也有分支。</small></p>
+<div class="chain"><a href="#mechanisms">Ⅰ 机制图谱</a><a href="#next">Ⅱ 工程架构</a><a href="#product-map">车规 MCU 地图</a><a href="#measure">Ⅲ 度量验证</a></div></header>
+<nav aria-label="第一性原理推导">
+<h2>人在算什么？机器接手了什么？</h2>
+<div class="chain"><a href="#match">现实问题</a><span>→</span><a href="#symbol">抽象与表示</a><span>→</span><a href="#carry">操作规则</a><span>→</span><a href="#machine">机器执行</a><span>→</span><a href="#turing">图灵机</a><span>→</span><a href="#stored">存储程序</a><span>→</span><a href="#cpu">CPU</a></div>
+</nav>
+<h2 id="mechanisms">Ⅰ · 机制图谱</h2><section id="match">
+<div class="eyebrow">01 · 需求</div>
+<h2>少了一只羊吗？</h2>
+<div class="model"><span>出栏</span><span aria-label="三只羊">🐑 🐑 🐑</span><span>留记</span><span aria-label="三颗石子">● ● ●</span><span>未配对</span><output id="stones" aria-live="polite" aria-label="剩余三颗石子">● ● ●</output></div>
+<button id="return-sheep">回来一只</button> <button id="reset-sheep">重来</button>
+<p class="next">一只羊 ↔ 一颗石子。剩下的石子对应未归的羊。</p>
+<details><summary>同一个问题，还可以在哪里遇到？</summary><p>盘点库存、核对发放名单、检查工具是否归还。这里的羊和石子是思想实验，用来演示一一对应。</p></details>
+<details><summary>历史展签 · 为什么需要账目？</summary><p>古代美索不达米亚的经济管理需要记录物资收支。乌鲁克泥板留下了早期记账证据，显示记录可以服务于跨时间核对。</p><a href="https://www.metmuseum.org/es/essays/the-origins-of-writing">大都会艺术博物馆 · 早期书写</a></details></section>
+<section id="symbol">
+<div class="eyebrow">02 · 抽象与表示</div>
+<h2>换掉石子，什么还一样？</h2>
+<div class="chain tiles">
+<div><b>🐑🐑🐑</b><small>现实对象 · 羊群</small></div><span>→</span>
+<div><b>三个</b><small>抽象对象 · 数量</small></div><span>→</span>
+<div><b>●●● / 3 / 11₂</b><small>表示 · 石子 / 数字 / 编码</small></div>
+</div>
+<p class="next">表示变了，数量没有变。计算规则决定怎样操作这些表示。</p>
+<details><summary>计算对象只有数量吗？</summary><p>也可以是顺序、真假或符号序列。比如「门已关」与「钥匙有效」是两个真假值，按“且”的规则可得出是否允许启动。</p></details>
+</section>
+<section id="carry">
+<div class="eyebrow">03 · 规则</div>
+<h2>第十颗石子来了怎么办？</h2>
+<div class="model digits"><span>十位</span><output id="tens">0</output><span>个位</span><output id="ones">8</output></div>
+<button id="add-one">加 1</button> <button id="reset-count">重来</button>
+<p id="carry-note" class="next" aria-live="polite">每满十个一，换成一个十。</p>
+<details><summary>为什么要让装置接管进位？</summary><p>只要按同一记数约定操作，进位就会反复出现。让相邻数位的机构联动，可以减少手动操作和漏进位。</p></details>
+</section>
+<section id="machine">
+<div class="eyebrow">04 · 执行</div>
+<h2>还能交给机器多少？</h2>
+<div class="chain tiles">
+<div><b>●●●</b><small>记录工具保存状态</small></div><span>→</span>
+<div><b>9 + 1 → 10</b><small>计算装置接管固定操作</small></div><span>→</span>
+<div><b>读 → 算 → 跳 ↻</b><small>可编程机器按指令选择操作</small></div>
+</div>
+<details><summary>历史展签 · 从算盘到差分机</summary>
+<p>算盘给人提供数位，人拨珠。机械计算器把进位交给机构。巴贝奇面对的是另一种规模的任务：为航海、天文和工程制作数表。他设计差分机，让装置反复用加法更新差分和表值。</p>
+<p><a href="https://computerhistory.org/exhibits/revolution/">CHM 计算器展区</a> · <a href="https://www.computerhistory.org/babbage/history">CHM 巴贝奇专题</a></p>
+</details>
+<details class="players"><summary>产业与研究展签</summary><p><strong>Thomas de Colmar · 商业化机械计算器</strong>　Arithmometer 将机械计算带进商业市场。<a href="https://www.computerhistory.org/brochures/calculators/">CHM</a></p>
+<p><strong>Tabulating Machine Company · 穿孔卡制表</strong>　霍列里斯的设备将人口属性编码为孔位并汇总。其公司后来成为 IBM 的前身之一。<a href="https://computerhistory.org/exhibits/revolution/">CHM</a></p></details>
+</section>
+<section id="turing">
+<div class="eyebrow">05 · 可计算性</div>
+<h2>怎样定义“按规则算”？</h2>
+<div class="chain tiles"><div><b>读</b><small>当前格的符号</small></div><span>→</span><div><b>查规则</b><small>内部状态 × 符号</small></div><span>→</span><div><b>写 · 移 · 换状态</b><small>重复，或停机</small></div></div>
+<p>实验：在一元计数 <code>111</code> 末尾添一个 <code>1</code>。</p>
+<div id="tape" class="tape" aria-label="图灵机纸带"><span class="current">1</span><span>1</span><span>1</span><span>□</span><span>□</span></div>
+<button id="tape-step">执行一步</button> <button id="tape-reset">重来</button>
+<p id="tape-state" aria-live="polite">扫描态 · 读到 1 就右移，读到空白就写 1 并停机。</p>
+<details><summary>1936 · 从专用规则到通用机器</summary>
+<p>上面演示的是一台特定图灵机。通用图灵机还能读取另一台图灵机的编码及其输入，逐步模拟它。规则的描述也成了可处理的符号。这个模型用来研究什么可以由机械步骤计算，以及哪些问题不存在通用算法。</p>
+<a href="https://theory.stanford.edu/~trevisan/cs172-07/turing36.pdf">图灵原论文</a></details>
+<details class="players"><summary>产业与研究展签</summary><p><strong>图灵 · 理论工作</strong>　通用机器模型在此对应可计算性研究。原论文见上方展签。</p></details>
+</section>
+<section id="stored">
+<div class="eyebrow">06 · 存储程序</div>
+<h2>换一道题，要换接线吗？</h2>
+<div class="chain tiles"><div><b>输入</b><small>载入程序与数据</small></div><span>→</span><div><b>存储器</b><small>地址 → 指令或数据</small></div><span>↔</span><div><b>处理器</b><small>取指 · 译码 · 执行</small></div><span>→</span><div><b>输出</b><small>呈现结果</small></div></div>
+<p class="next">指令也能存起来。改写存储器里的程序，同一台机器就能执行另一套步骤。</p>
+<details><summary>1945–1948 · 从设计报告到运行</summary>
+<p>1945 年的 EDVAC 草案描述了运算、控制、存储和输入输出等组成部分。1948 年，曼彻斯特 Baby 在电子存储器上运行程序。图灵机回答“规则能描述怎样的计算”，存储程序体系回答“硬件如何取出并执行程序”。</p>
+<p><a href="https://library.si.edu/digital-library/book/firstdraftofrepo00vonn">EDVAC 草案</a> · <a href="https://www.computerhistory.org/storageengine/williams-demonstrates-crt-storage/">CHM 曼彻斯特 Baby 史料</a></p>
+</details>
+<details class="players"><summary>产业与研究展签</summary><p><strong>宾夕法尼亚大学 Moore School / 曼彻斯特大学 · 研究团队</strong>　分别对应 EDVAC 草案和 Baby 的运行验证。史料见上方展签。</p></details>
+</section>
+<section id="cpu">
+<div class="eyebrow">07 · CPU</div>
+<h2>按一步，CPU 里面发生什么？</h2>
+<label>修改程序 <select id="operation"><option value="ADD">相加 2 + 3</option><option value="SUB">相减 2 − 3</option></select></label>
+<div class="cpu-grid">
+<table><caption>存储器</caption><thead><tr><th scope="col">地址</th><th scope="col">内容</th></tr></thead>
+<tbody id="memory"></tbody></table>
+<div><p><b>PC</b> · 下一条指令地址 <output id="pc"></output></p><p><b>ACC</b> · 累加寄存器 <output id="acc"></output></p><p id="phase" aria-live="polite"></p></div>
+</div>
+<button id="cpu-step">执行一阶段</button> <button id="cpu-reset">重来</button>
+<details><summary>控制器、寄存器、运算器怎么分工？</summary>
+<p>控制器用 PC 取指并译码。寄存器保存当前地址和中间结果。算术逻辑单元按指令执行加减。教学机用助记符显示指令，实际硬件依据指令编码识别操作与操作数。</p>
+</details>
+<details class="players"><summary>产业与研究展签</summary><p><strong>Busicom × Intel · 从计算器需求到微处理器</strong>　Busicom 的计算器项目促成 Intel 4004。1971 年发布的 4004 把 CPU 集成到单颗芯片。<a href="https://www.intel.com/content/www/us/en/history/virtual-vault/articles/the-intel-4004.html">Intel 档案</a></p></details>
+</section>
+<h2 id="next">Ⅱ · 工程架构</h2>
+<section id="isa">
+<div class="eyebrow">08 · 指令集与执行方式</div>
+<h2>同一批加法，指令怎样表达？</h2>
+<div class="chain tiles">
+<div><b>ADD × 4</b><small>标量 · 分别表达四组加法</small></div>
+<div><b>VADD × 1</b><small>向量 · 一次表达四组加法</small></div>
+<div><b>提交加法任务</b><small>卸载 · 由另一执行单元接手</small></div>
+</div>
+<p class="next">ISA 约定指令的含义。微架构决定怎样完成它，包括分几拍、用几条执行通道。</p>
+<div class="execution">
+<div class="eyebrow">EXECUTION EXPLORER</div>
+<h3>一眼看懂数据怎样穿过硬件</h3>
+<div id="hardware-tabs" class="hardware-tabs" aria-label="选择计算范式"></div>
+<div class="stage"><svg id="hardware-lanes" viewBox="0 0 760 272" role="img" aria-label="硬件执行示意"></svg></div>
+<div class="timeline">
+<button id="hardware-play">播放</button><button id="hardware-step">单步</button><button id="hardware-reset">重来</button>
+<label>进度 <input id="hardware-seek" type="range" min="0" value="0"></label>
+<small id="hardware-position"></small>
+</div>
+<p id="hardware-frame" aria-live="polite"></p>
+<small>高亮为当前活动路径。步骤用于解释机制，实际时序取决于具体实现。</small>
+</div>
+<details><summary>查看硬件图谱 · 谁控制执行？数据怎样流动？</summary>
+<div style="overflow:auto"><table><thead><tr><th>机制</th><th>控制方式</th><th>观察数据路径</th></tr></thead><tbody>
+<tr><th>CPU + SIMD</th><td>CPU 指令驱动多个数据通道</td><td>向量寄存器与访存</td></tr>
+<tr><th>DSP</th><td>面向信号处理的可编程执行</td><td>采样窗口、乘加与累加</td></tr>
+<tr><th>GPU</th><td>大量线程分组执行</td><td>访存合并、缓存与共享存储</td></tr>
+<tr><th>NPU</th><td>按支持的算子调度计算单元</td><td>激活、权重与局部复用</td></tr>
+<tr><th>数据流加速器</th><td>按依赖和数据就绪推进</td><td>数据在算子之间流动</td></tr>
+<tr><th>FPGA</th><td>由配置形成专用电路</td><td>自定义流水级、缓冲与互连</td></tr>
+</tbody></table></div>
+<p>这些维度可以重叠。例如 DSP 也可以有 SIMD 指令。选型要回到具体实现和负载。</p>
+</details>
+<details class="players"><summary>产业与研究展签</summary><p><strong>IBM · System/360</strong>　让同一系列的不同机型共享架构，体现软件兼容与硬件实现的分离。<a href="https://www.computerhistory.org/timeline/computers/">CHM 时间线</a></p>
+<p><strong>Acorn → Arm · 处理器架构产业化</strong>　Arm 于 1990 年由 Acorn、Apple 与 VLSI Technology 合资成立。<a href="https://newsroom.arm.com/blog/arm-official-history">Arm 档案</a></p>
+<p><strong>NVIDIA · GPU</strong>　CUDA 将 GPU 并行计算能力开放给通用计算程序。<a href="https://developer.nvidia.com/cuda/faq">CUDA</a></p>
+<p><strong>Xilinx（现属 AMD）· FPGA</strong>　XC2064 是早期商用 FPGA，展示了交付后仍可配置的逻辑电路。<a href="https://www.amd.com/en/blogs/2025/from-invention-to-ai-acceleration--celebrating-40-years-of-fpga-.html">AMD 档案</a></p></details>
+</section>
+<section id="product-map">
+<div class="eyebrow">09 · 从机制到产品</div>
+<h2>一颗 MCU 里，谁负责哪类计算？</h2>
+<p>选一颗芯片，按执行位置拆开看。</p>
+<label>产品 <select id="product-select"></select></label>
+<div class="product-grid" id="product-layout" aria-live="polite"></div>
+<p><a href="#runtime">继续看软件如何交接任务 ↓</a></p>
+<details><summary>查看 22 个样本 · 支持按厂商、型号、资源筛选</summary>
+<label>筛选 <input id="product-filter" type="search" style="width:min(19em,65vw)" placeholder="例如 Stellar、DSP、Cortex-M7"></label>
+<div style="overflow:auto"><table><thead><tr><th>厂商</th><th>产品</th><th>主核与核内资源</th><th>独立执行资源</th><th>专用控制与外设</th></tr></thead><tbody id="product-rows"></tbody></table></div>
+<p><small>据用户提供的《主流车规 MCU 算力架构地图》（图注 2026.11）整理，配置尚未逐项核验。— 表示原图未映射。图形资源指仪表等图形用途。S32K5 为原图标注的预量产系列披露，配置依变体而定。</small></p>
+</details>
+</section>
+<section id="runtime">
+<div class="eyebrow">10 · 任务生命周期</div>
+<h2>把运算交出去，谁负责交接？</h2>
+<div class="chain tiles"><div><b>提交</b><small>任务描述、精度、截止期</small></div><span>→</span><div><b>排队 · 准备</b><small>选择后端、明确缓冲区归属</small></div><span>→</span><div><b>执行</b><small>驱动触发、监测超时</small></div><span>→</span><div><b>完成</b><small>同步结果、记录指标</small></div></div>
+<p class="next">中间件统一交接流程，后端声明自己的能力和限制。</p>
+<details><summary>汽车 MCU 项目方案 · 展开分层</summary>
+<p>应用 SWC → RTE → 项目级 CDD → 后端适配器 → Runtime / Driver → 执行单元</p>
+<p>公共层管理任务状态和完成通知。适配层处理支持的算子、数据布局、对齐和同步。上线前验证资源隔离、故障处理和最坏响应时间。</p>
+</details>
+<details class="players"><summary>产业与研究展签</summary><p><strong>Infineon · AURIX TC49x</strong>　PPU 有自己的标量核心和向量单元，适合对照页面中的「CPU 内 SIMD」与「独立后端卸载」。<a href="https://www.infineon.com/products/microcontroller/32-bit-tricore/aurix-tc4x/tc49x">Infineon 产品资料</a></p></details>
+</section>
+<h2 id="measure">Ⅲ · 度量验证</h2>
+<section>
+<div class="eyebrow">11 · 端到端实验</div>
+<h2>计算段变短，结果就更早到吗？</h2>
+<p><small>教学假设。CPU 每项 4 μs，加速器每项 1 μs，提交固定 12 μs。</small></p>
+<label>批量 <input id="batch" type="range" min="1" max="64" value="16"> <span id="batch-value"></span></label>
+<label>排队 μs <input id="queue" type="range" min="0" max="120" value="10"> <span id="queue-value"></span></label>
+<label>双向搬运 μs <input id="transfer" type="range" min="0" max="120" value="20"> <span id="transfer-value"></span></label>
+<div class="bench"><b>CPU</b><div id="cpu-bar" class="bar"></div><b>卸载</b><div id="offload-bar" class="bar"></div></div>
+<output id="result" aria-live="polite"></output>
+<details><summary>实际项目怎么测？</summary>
+<p><b>画像</b> · 批量、并行度、访存、精度、截止期。<br>
+<b>对照</b> · 同一任务、同一正确性标准，比较 CPU 与候选后端。<br>
+<b>验收</b> · 记录各阶段耗时和负载条件，检查资源竞争下的响应时间及部署成本。</p>
+</details>
+<p><a href="#top">回到推导路线</a></p>
+</section>
+</main>
+<script>
+const stones = document.querySelector('#stones');
+const returnSheep = document.querySelector('#return-sheep');
+let remaining = 3;
+function showSheep() {
+    stones.textContent = remaining ? '● '.repeat(remaining).trim() : '✓ 全部归来';
+    stones.setAttribute('aria-label', remaining ? '剩余 ' + remaining + ' 颗石子' : '全部归来');
+    returnSheep.disabled = remaining === 0;
+}
+returnSheep.onclick = () => { remaining--; showSheep(); };
+document.querySelector('#reset-sheep').onclick = () => { remaining = 3; showSheep(); };
+
+const addOne = document.querySelector('#add-one');
+let count = 8;
+function showCount() {
+    document.querySelector('#tens').textContent = Math.floor(count / 10);
+    document.querySelector('#ones').textContent = count % 10;
+    document.querySelector('#carry-note').textContent = count === 10
+        ? '个位归零，十位加一。'
+        : '每满十个一，换成一个十。';
+    addOne.disabled = count === 12;
+}
+addOne.onclick = () => { count++; showCount(); };
+document.querySelector('#reset-count').onclick = () => { count = 8; showCount(); };
+
+const tape = document.querySelector('#tape');
+const tapeStep = document.querySelector('#tape-step');
+const tapeState = document.querySelector('#tape-state');
+let head = 0;
+let stopped = false;
+function showTape() {
+    Array.from(tape.children).forEach((cell, index) => {
+        cell.textContent = index < 3 || (index === 3 && stopped) ? '1' : '□';
+        cell.classList.toggle('current', index === head);
+    });
+    tapeStep.disabled = stopped;
+}
+tapeStep.onclick = () => {
+    if (head === 3) {
+        stopped = true;
+        tapeState.textContent = '停机态 · 写入 1，结果为 1111。';
+    } else {
+        head++;
+        tapeState.textContent = '扫描态 · 读到 1，右移一格。';
+    }
+    showTape();
+};
+document.querySelector('#tape-reset').onclick = () => {
+    head = 0;
+    stopped = false;
+    tapeState.textContent = '扫描态 · 读到 1 就右移，读到空白就写 1 并停机。';
+    showTape();
+};
+
+const operation = document.querySelector('#operation');
+const memory = document.querySelector('#memory');
+const cpuStep = document.querySelector('#cpu-step');
+const phase = document.querySelector('#phase');
+let cells, pc, acc, address, stage;
+function showCpu() {
+    memory.replaceChildren(...cells.map((cell, index) => {
+        const row = document.createElement('tr');
+        row.insertCell().textContent = index;
+        row.insertCell().textContent = cell;
+        row.classList.toggle('current', index === (stage === 0 ? pc : address));
+        return row;
+    }));
+    document.querySelector('#pc').textContent = pc;
+    document.querySelector('#acc').textContent = acc;
+}
+function resetCpu() {
+    cells = ['LOAD 4', operation.value + ' 5', 'STORE 6', 'HALT', 2, 3, 0];
+    pc = acc = stage = 0;
+    cpuStep.disabled = false;
+    phase.textContent = '就绪 · 从地址 0 开始';
+    showCpu();
+}
+cpuStep.onclick = () => {
+    if (stage === 0) {
+        address = pc++;
+        phase.textContent = '取指 · 读取地址 ' + address + ' 的 ' + cells[address];
+    } else if (stage === 1) {
+        const [command, operand] = cells[address].split(' ');
+        phase.textContent = '译码 · ' + command + (operand ? '，操作数地址 ' + operand : '');
+    } else {
+        const [command, operand] = cells[address].split(' ');
+        const value = cells[Number(operand)];
+        if (command === 'LOAD') acc = value;
+        if (command === 'ADD') acc += value;
+        if (command === 'SUB') acc -= value;
+        if (command === 'STORE') cells[Number(operand)] = acc;
+        cpuStep.disabled = command === 'HALT';
+        phase.textContent = '执行 · ' + (cpuStep.disabled ? '停机' : command);
+    }
+    stage = (stage + 1) % 3;
+    showCpu();
+};
+operation.onchange = resetCpu;
+document.querySelector('#cpu-reset').onclick = resetCpu;
+resetCpu();
+const byId = id => document.getElementById(id);
+const sliders = ['batch', 'queue', 'transfer'];
+function showBenchmark() {
+    const [batch, queue, transfer] = sliders.map(id => {
+        const value = Number(byId(id).value);
+        byId(id + '-value').textContent = value;
+        return value;
+    });
+    const cpu = batch * 4;
+    const segments = [12, queue, transfer, batch];
+    const offload = segments.reduce((sum, value) => sum + value, 0);
+    const scale = Math.max(cpu, offload);
+    function draw(id, values, names) {
+        byId(id).replaceChildren(...values.map((value, index) => {
+            const bar = document.createElement('span');
+            bar.style.width = (100 * value / scale) + '%';
+            bar.title = names[index] + ' ' + value + ' μs';
+            return bar;
+        }));
+    }
+    draw('cpu-bar', [cpu], ['计算']);
+    draw('offload-bar', segments, ['提交', '排队', '双向搬运合计', '计算']);
+    byId('result').textContent = 'CPU ' + cpu + ' μs ｜卸载 ' + offload +
+        ' μs（提交 12 + 排队 ' + queue + ' + 双向搬运 ' + transfer + ' + 计算 ' + batch + '）';
+}
+sliders.forEach(id => byId(id).addEventListener('input', showBenchmark));
+showBenchmark();
+const animations = [
+    [['ADD 0','ADD 1','ADD 2','ADD 3'],[[[0],'指令处理第 1 对数据'],[[1],'处理第 2 对'],[[2],'处理第 3 对'],[[3],'处理第 4 对']]],
+    [['通道 0','通道 1','通道 2','通道 3'],[[[],'取出一条向量加法指令'],[[0,1,2,3],'同一操作作用于四对数据']]],
+    [['取样本','取系数','乘加 MAC','累加值'],[[[0,1],'读取采样值与滤波系数'],[[2,3],'乘积累加到寄存器'],[[0,1],'推进到下一对样本与系数'],[[2,3],'继续乘加']]],
+    [['线程 0','线程 1','线程 2','线程 3'],[[[0,1,2,3],'同组线程执行像素处理指令'],[[0,2],'示意分支：满足条件的线程执行亮化'],[[1,3],'其余线程执行另一条路径']]],
+    [['激活块','权重块','乘加阵列','输出块'],[[[0,1],'载入激活与权重块'],[[0,1,2],'阵列用局部数据做多组乘加'],[[2,3],'归并并写出结果块']]],
+    [['输入 A','输入 B','求和节点','后续节点'],[[[0],'输入 A 就绪，求和仍等待 B'],[[0,1,2],'两个输入齐备，求和节点执行'],[[3],'结果就绪，触发后续节点']]],
+    [['① 输入','② 乘法','③ 累加'],[[[0],'数据 A 进入流水线'],[[0,1],'数据 B 进入，A 乘法'],[[0,1,2],'数据 C 进入，B 乘法，A 累加']]]
+];
+const diagrams = [
+    ['数据对','加法指令','结果',4],
+    ['向量元素','并行通道','结果元素',4],
+    ['样本 × 系数','乘加器','累加寄存器',2],
+    ['像素 / 线程','线程执行组','像素结果',4],
+    ['激活 × 权重','乘加阵列','输出块',3],
+    ['输入 A / B','求和节点','下游节点',2],
+    ['输入流','乘法流水级','累加流水级',3]
+];
+const names = ['CPU 标量','SIMD','DSP','GPU','NPU','数据流','FPGA'];
+const canvas = byId('hardware-lanes');
+const play = byId('hardware-play');
+const seek = byId('hardware-seek');
+let mode = 0;
+let frame = 0;
+let timer;
+const tabs = names.map((name, index) => {
+    const button = document.createElement('button');
+    button.textContent = name;
+    button.onclick = () => { mode = index; resetHardware(); };
+    return button;
+});
+byId('hardware-tabs').replaceChildren(...tabs);
+function stopPlayback() {
+    clearInterval(timer);
+    timer = undefined;
+    play.textContent = '播放'; canvas.classList.remove('running');
+}
+function renderHardware() {
+    const [input, work, output, count] = diagrams[mode];
+    const frames = animations[mode][1];
+    const [active, message] = frames[frame - 1] ?? [[], '选择播放或拖动进度，观察路径变化。'];
+    const middle = 152;
+    let paths = '';
+    let nodes = '';
+    for (let i = 0; i < count; i++) {
+        const y = middle + (i - (count - 1) / 2) * 47;
+        const shared = [0,2,5].includes(mode);
+        const workY = shared ? middle : y;
+        const inputLive = mode === 5 ? active.includes(i) : mode === 2 ? active.includes(0) : mode === 4 ? active.includes(0) : active.includes(i);
+        const outputLive = mode === 5 ? active.includes(3) : mode === 2 ? active.includes(3) : mode === 4 ? active.includes(3) : active.includes(i);
+        const outputY = shared && mode !== 0 ? middle : y;
+        const first = 'M 143 ' + y + ' C 226 ' + y + ', 225 ' + workY + ', 316 ' + workY;
+        const second = 'M 444 ' + workY + ' C 530 ' + workY + ', 530 ' + outputY + ', 617 ' + outputY;
+        paths += trace(first,inputLive) + trace(second,outputLive);
+        nodes += box(39,y,mode === 5 ? ['A','B'][i] : '数据 ' + (i+1),inputLive,104);
+        if (!shared || i === 0) nodes += box(316,workY,work + (shared ? '' : ' ' + (i+1)),active.length > 0 && (shared || mode === 4 || active.includes(i)),128);
+        if (mode === 0 || !shared || i === 0) nodes += box(617,outputY,shared && mode !== 0 ? '结果' : '结果 ' + (i+1),outputLive,104);
+    }
+    if (mode === 6) {
+        paths = trace('M 143 152 H 316', frame >= 2) + trace('M 444 152 H 617', frame >= 3);
+        nodes = box(39,152,frame ? ['','A','B','C'][frame] : '等待',frame >= 1,104)
+            + box(316,152,frame >= 2 ? '乘法 · ' + (frame === 2 ? 'A' : 'B') : '乘法',frame >= 2,128)
+            + box(617,152,frame >= 3 ? '累加 · A' : '累加',frame >= 3,104);
+    }
+    canvas.innerHTML = '<text x="91" y="35">'+input+'</text><text x="380" y="35">'+work+'</text><text x="669" y="35">'+output+'</text>'+paths+nodes;
+    canvas.setAttribute('aria-label', names[mode] + '：' + message);
+    tabs.forEach((button,index) => button.setAttribute('aria-pressed',index === mode));
+    seek.max = frames.length;
+    seek.value = frame;
+    byId('hardware-position').textContent = frame + ' / ' + frames.length;
+    byId('hardware-frame').textContent = message;
+}
+function trace(path, live) {
+    return '<path d="'+path+'" class="'+(live?'live':'wire')+'"/>';
+}
+function box(x,y,label,live,width) {
+    return '<g class="'+(live?'lit':'idle')+'"><rect x="'+x+'" y="'+(y-16)+'" width="'+width+'" height="32" rx="8"/><text x="'+(x+width/2)+'" y="'+(y+5)+'">'+label+'</text></g>';
+}
+function advanceHardware() {
+    const max = animations[mode][1].length;
+    frame = frame < max ? frame + 1 : 1;
+    renderHardware();
+}
+function resetHardware() {
+    stopPlayback();
+    frame = 0;
+    renderHardware();
+}
+play.onclick = () => {
+    if (timer !== undefined) { stopPlayback(); return; }
+    play.textContent = '暂停'; canvas.classList.add('running');
+    advanceHardware();
+    timer = setInterval(advanceHardware, 1450);
+};
+seek.oninput = () => { stopPlayback(); frame = Number(seek.value); renderHardware(); };
+byId('hardware-step').onclick = () => { stopPlayback(); advanceHardware(); };
+byId('hardware-reset').onclick = resetHardware;
+renderHardware();
+const products = [
+['英飞凌','AURIX TC4Dx','TriCore 1.8 · 打包 SIMD','PPU · 独立向量 DSP','—',1,2],
+['英飞凌','TRAVEO T2G CYT4DN','Cortex-M7 · 打包 SIMD / MAC','—','2D / 2.5D 图形',1],
+['恩智浦','S32K344','Cortex-M7 · 打包 SIMD / MAC','—','—',1],
+['恩智浦','S32K396','Cortex-M7 · 打包 SIMD / MAC','CoolFlux · 独立 DSP','eTPU 时序协处理',1,2],
+['恩智浦','S32K5 系列 †','Cortex-M7 / R52 · 依变体','eIQ Neutron NPU · 系列披露','—',null,4],
+['意法半导体','Stellar SR6G7C6 / C4','Cortex-R52+ · Neon（2 核）','Cortex-M4 多用途加速','—',1],
+['意法半导体','Stellar SR6P6C8 / C6 / C4','Cortex-R52+ · 无 Neon','DFA · DME / DSPH（Cortex-M4）','—',null,5],
+['意法半导体','Stellar SR6P3EC4 / C6','Cortex-R52+ · 无 Neon','Neural-ART · Cortex-M4 多用途加速','—',null,4],
+['瑞萨','RH850/U2B','RH850 G4MH','—','EMU3S 电机控制'],
+['瑞萨','RH850/D1M','RH850 G3M','—','2.5D 图形'],
+['德州仪器','TMS320F28P659SH-Q1','C28x DSP CPU · TMU 核内','CLA 独立执行','—',2],
+['微芯科技','dsPIC33AK512MC510','dsPIC33A DSC 核 · DSP 引擎 / 核内 MAC','—','—',2],
+['芯驰科技','E3650','Cortex-R52+','—','SSDPE / SSDP 通信'],
+['芯驰科技','E33 系列','Cortex-R5F','—','2D 图形'],
+['杰发科技','AC7840x','Cortex-M4F · 打包 SIMD / MAC','—','—',1],
+['杰发科技','AC7870x','Cortex-R52','—','—'],
+['旗芯微','FC7300Fxx','Cortex-M7 · 打包 SIMD / MAC','—','—',1],
+['兆易创新','GD32A71x / A72x / A74x','Cortex-M7 · 打包 SIMD / MAC','—','—',1],
+['云途半导体','YTM32B1H 系列','Cortex-M7 · 打包 SIMD / MAC','—','—',1],
+['芯旺微','KF32A156','KungFu32','—','ECFGL 可编程逻辑'],
+['峰岹科技','FU6866Q1','8051','—','ME · 硬件 FOC / SVPWM'],
+['国芯科技','CCFC3008PT','C*Core（PowerPC）','—','eTPU / GTM 时序']
+];
+const productSelect = byId('product-select');
+const filter = byId('product-filter');
+products.forEach(([vendor, model], index) => productSelect.add(new Option(vendor + ' · ' + model, index)));
+function showProduct() {
+    const [, , cpu, unit, peripheral, cpuMode, unitMode] = products[Number(productSelect.value)];
+    const layers = [
+        ['主核与核内资源',cpu,cpuMode],
+        ['独立执行资源',unit,unitMode],
+        ['专用控制与外设',peripheral]
+    ];
+    byId('product-layout').replaceChildren(...layers.map(([label, detail, demo]) => {
+        const card = document.createElement('article');
+        const title = document.createElement('small');
+        title.textContent = label;
+        const value = document.createElement('strong');
+        value.textContent = detail === '—' ? '原图未映射' : detail;
+        card.append(title,value);
+        if (Number.isInteger(demo)) {
+            const jump = document.createElement('a');
+            jump.href = '#hardware-tabs';
+            jump.style.display = 'block';
+            jump.textContent = '查看通用机制动画 ↑';
+            jump.onclick = () => { mode = demo; resetHardware(); };
+            card.append(jump);
+        }
+        return card;
+    }));
+}
+function filterProducts() {
+    const query = filter.value.trim().toLowerCase();
+    const rows = products.flatMap((product,index) => {
+        const fields = product.slice(0,5);
+        if (!fields.join(' ').toLowerCase().includes(query)) return [];
+        const row = document.createElement('tr');
+        fields.forEach((value,column) => {
+            const cell = row.insertCell();
+            if (column !== 1) { cell.textContent = value; return; }
+            const link = document.createElement('a');
+            link.href = '#product-map';
+            link.textContent = value;
+            link.onclick = () => { productSelect.value = index; showProduct(); };
+            cell.append(link);
+        });
+        return [row];
+    });
+    if (!rows.length) {
+        const row = document.createElement('tr');
+        const cell = row.insertCell();
+        cell.colSpan = 5;
+        cell.textContent = '没有匹配样本';
+        rows.push(row);
+    }
+    byId('product-rows').replaceChildren(...rows);
+}
+productSelect.onchange = showProduct;
+filter.oninput = filterProducts;
+showProduct();
+filterProducts();
+</script>
+</body>
+</html>
+
+
+
