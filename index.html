@@ -54,6 +54,11 @@ button[aria-pressed="true"],#hardware-play{background:#414ab8;color:#fff;border-
 .product-grid article{background:#f2f5ff;border:1px solid #dce2f0;border-radius:12px;padding:14px}
 .product-grid article:nth-child(2){background:#eaf8f6}.product-grid article:nth-child(3){background:#faf5e7}
 .product-grid small{display:block;color:#465676}
+#cpu-flow{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:8px;padding:0;list-style:none}
+#cpu-flow li{padding:10px;border:1px solid #cdd6ef;border-radius:10px;background:#f3f5fc}
+#cpu-flow small{display:block}#cpu-flow li[aria-current="step"]{background:#e1e4ff;border-color:#555fca;animation:cpu-pulse .45s ease-out}
+@keyframes cpu-pulse{from{box-shadow:inset 0 0 0 3px #626ce1}to{box-shadow:inset 0 0 0 0 transparent}}
+@media(prefers-reduced-motion:reduce){#cpu-flow li{animation:none!important}}
 </style>
 <body>
 <main>
@@ -136,6 +141,12 @@ button[aria-pressed="true"],#hardware-play{background:#414ab8;color:#fff;border-
 <div class="eyebrow">07 · CPU</div>
 <h2>按一步，CPU 里面发生什么？</h2>
 <label>修改程序 <select id="operation"><option value="ADD">相加 2 + 3</option><option value="SUB">相减 2 − 3</option></select></label>
+<ol id="cpu-flow" aria-label="指令执行路径">
+<li>取指<small>PC → 内存 → 指令寄存器</small></li>
+<li>译码<small>指令 → 操作与地址</small></li>
+<li>执行<small>操作数 → 运算或传送</small></li>
+<li>写回<small>结果 → ACC 或内存</small></li>
+</ol>
 <div class="cpu-grid">
 <table><caption>存储器</caption><thead><tr><th scope="col">地址</th><th scope="col">内容</th></tr></thead>
 <tbody id="memory"></tbody></table>
@@ -286,13 +297,17 @@ const operation = document.querySelector('#operation');
 const memory = document.querySelector('#memory');
 const cpuStep = document.querySelector('#cpu-step');
 const phase = document.querySelector('#phase');
-let cells, pc, acc, address, stage;
-function showCpu() {
+const cpuStages = document.querySelectorAll('#cpu-flow li');
+let cells, pc, acc, address, stage, activeAddress, instruction, command, operand, pending;
+function showCpu(currentStage = -1) {
+    cpuStages.forEach((tile, index) => {
+        tile.setAttribute('aria-current', index === currentStage ? 'step' : 'false');
+    });
     memory.replaceChildren(...cells.map((cell, index) => {
         const row = document.createElement('tr');
         row.insertCell().textContent = index;
         row.insertCell().textContent = cell;
-        row.classList.toggle('current', index === (stage === 0 ? pc : address));
+        row.classList.toggle('current', index === activeAddress);
         return row;
     }));
     document.querySelector('#pc').textContent = pc;
@@ -301,29 +316,41 @@ function showCpu() {
 function resetCpu() {
     cells = ['LOAD 4', operation.value + ' 5', 'STORE 6', 'HALT', 2, 3, 0];
     pc = acc = stage = 0;
+    activeAddress = 0;
     cpuStep.disabled = false;
     phase.textContent = '就绪 · 从地址 0 开始';
     showCpu();
 }
 cpuStep.onclick = () => {
     if (stage === 0) {
-        address = pc++;
-        phase.textContent = '取指 · 读取地址 ' + address + ' 的 ' + cells[address];
+        activeAddress = address = pc++;
+        instruction = cells[address];
+        phase.textContent = '取指 · 内存[' + address + '] → 指令寄存器：' + instruction;
     } else if (stage === 1) {
-        const [command, operand] = cells[address].split(' ');
-        phase.textContent = '译码 · ' + command + (operand ? '，操作数地址 ' + operand : '');
-    } else {
-        const [command, operand] = cells[address].split(' ');
-        const value = cells[Number(operand)];
-        if (command === 'LOAD') acc = value;
-        if (command === 'ADD') acc += value;
-        if (command === 'SUB') acc -= value;
-        if (command === 'STORE') cells[Number(operand)] = acc;
+        const [opcode, argument] = instruction.split(' ');
+        command = opcode;
+        operand = Number(argument);
+        phase.textContent = '译码 · ' + command + (argument ? '，操作数地址 ' + operand : '');
+    } else if (stage === 2) {
+        activeAddress = command === 'STORE' || command === 'HALT' ? address : operand;
+        const value = cells[operand];
+        if (command === 'LOAD') pending = value;
+        if (command === 'ADD') pending = acc + value;
+        if (command === 'SUB') pending = acc - value;
+        if (command === 'STORE') pending = acc;
         cpuStep.disabled = command === 'HALT';
-        phase.textContent = '执行 · ' + (cpuStep.disabled ? '停机' : command);
+        phase.textContent = cpuStep.disabled ? '执行 · HALT，处理器停机' : '执行 · ' + command + '，待写入值 ' + pending;
+    } else if (command === 'STORE') {
+        activeAddress = operand;
+        cells[operand] = pending;
+        phase.textContent = '写回 · ' + pending + ' → 内存[' + operand + ']';
+    } else {
+        activeAddress = -1;
+        acc = pending;
+        phase.textContent = '写回 · ' + pending + ' → ACC';
     }
-    stage = (stage + 1) % 3;
-    showCpu();
+    showCpu(stage);
+    stage = (stage + 1) % 4;
 };
 operation.onchange = resetCpu;
 document.querySelector('#cpu-reset').onclick = resetCpu;
@@ -538,6 +565,7 @@ filterProducts();
 </script>
 </body>
 </html>
+
 
 
 
