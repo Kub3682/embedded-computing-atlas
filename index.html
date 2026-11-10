@@ -59,6 +59,28 @@ button[aria-pressed="true"],#hardware-play{background:#414ab8;color:#fff;border-
 #cpu-flow small{display:block}#cpu-flow li[aria-current="step"]{background:#e1e4ff;border-color:#555fca;animation:cpu-pulse .45s ease-out}
 @keyframes cpu-pulse{from{box-shadow:inset 0 0 0 3px #626ce1}to{box-shadow:inset 0 0 0 0 transparent}}
 @media(prefers-reduced-motion:reduce){#cpu-flow li{animation:none!important}}
+.table-scroll{overflow-x:auto}.table-scroll table{min-width:620px}
+.mobile-scroll-hint{display:none}
+select,input{max-width:100%;box-sizing:border-box}
+@media(max-width:600px){
+  :root{font-size:16px}
+  body{padding:10px}
+  header,section,nav{padding:14px;border-radius:12px}
+  h1{font-size:clamp(2rem,8vw,3rem)}
+  h2{font-size:1.35rem}
+  .chain{gap:6px}
+  .chain>a,.tiles>div{padding:8px}
+  button,select,.chain>a{min-height:44px;box-sizing:border-box}
+  .chain>a{display:inline-flex;align-items:center}
+  .cpu-grid,.product-grid{grid-template-columns:minmax(0,1fr)}
+  #cpu-flow{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .execution{padding:10px}
+  .timeline label{flex-basis:100%;display:flex;align-items:center;gap:8px}
+  .timeline input{flex:1;min-width:0;height:44px}
+  .mobile-scroll-hint{display:block;font-size:.875rem;color:#485777}
+  .stage,.table-scroll{overscroll-behavior-inline:contain}
+  #hardware-lanes{min-width:640px}
+}
 </style>
 <body>
 <main>
@@ -172,7 +194,7 @@ button[aria-pressed="true"],#hardware-play{background:#414ab8;color:#fff;border-
 <div class="eyebrow">EXECUTION EXPLORER</div>
 <h3>一眼看懂数据怎样穿过硬件</h3>
 <div id="hardware-tabs" class="hardware-tabs" aria-label="选择计算范式"></div>
-<div class="stage"><svg id="hardware-lanes" viewBox="0 0 760 272" role="img" aria-label="硬件执行示意"></svg></div>
+<p class="mobile-scroll-hint">左右滑动查看完整执行路径 →</p><div class="stage" tabindex="0" role="region" aria-label="硬件执行画布，可横向滚动"><svg id="hardware-lanes" viewBox="0 0 760 272" role="img" aria-label="硬件执行示意"></svg></div>
 <div class="timeline">
 <button id="hardware-play">播放</button><button id="hardware-step">单步</button><button id="hardware-reset">重来</button>
 <label>进度 <input id="hardware-seek" type="range" min="0" value="0"></label>
@@ -182,7 +204,7 @@ button[aria-pressed="true"],#hardware-play{background:#414ab8;color:#fff;border-
 <small>高亮为当前活动路径。步骤用于解释机制，实际时序取决于具体实现。</small>
 </div>
 <details><summary>查看硬件图谱 · 谁控制执行？数据怎样流动？</summary>
-<div style="overflow:auto"><table><thead><tr><th>机制</th><th>控制方式</th><th>观察数据路径</th></tr></thead><tbody>
+<div class="table-scroll" tabindex="0" role="region" aria-label="对照表，可横向滚动"><table><thead><tr><th>机制</th><th>控制方式</th><th>观察数据路径</th></tr></thead><tbody>
 <tr><th>CPU + SIMD</th><td>CPU 指令驱动多个数据通道</td><td>向量寄存器与访存</td></tr>
 <tr><th>DSP</th><td>面向信号处理的可编程执行</td><td>采样窗口、乘加与累加</td></tr>
 <tr><th>GPU</th><td>大量线程分组执行</td><td>访存合并、缓存与共享存储</td></tr>
@@ -206,7 +228,7 @@ button[aria-pressed="true"],#hardware-play{background:#414ab8;color:#fff;border-
 <p><a href="#runtime">继续看软件如何交接任务 ↓</a></p>
 <details><summary>查看 22 个样本 · 支持按厂商、型号、资源筛选</summary>
 <label>筛选 <input id="product-filter" type="search" style="width:min(19em,65vw)" placeholder="例如 Stellar、DSP、Cortex-M7"></label>
-<div style="overflow:auto"><table><thead><tr><th>厂商</th><th>产品</th><th>主核与核内资源</th><th>独立执行资源</th><th>专用控制与外设</th></tr></thead><tbody id="product-rows"></tbody></table></div>
+<div class="table-scroll" tabindex="0" role="region" aria-label="对照表，可横向滚动"><table><thead><tr><th>厂商</th><th>产品</th><th>主核与核内资源</th><th>独立执行资源</th><th>专用控制与外设</th></tr></thead><tbody id="product-rows"></tbody></table></div>
 <p><small>据用户提供的《主流车规 MCU 算力架构地图》（图注 2026.11）整理，配置尚未逐项核验。— 表示原图未映射。图形资源指仪表等图形用途。S32K5 为原图标注的预量产系列披露，配置依变体而定。</small></p>
 </details>
 </section>
@@ -565,6 +587,7 @@ filterProducts();
 </script>
 </body>
 </html>
+
 
 
 
