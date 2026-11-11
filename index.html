@@ -122,7 +122,7 @@ section{scroll-margin-top:12px}details{margin-top:14px}
 <div class="chain"><a href="#mechanisms">从数数到计算机</a><a href="#next">软硬件怎样协作</a><a href="#product-map">车规 MCU 地图</a><a href="#measure">怎样判断更快</a></div></header>
 <nav aria-label="阅读路线">
 <h2>沿着问题走，每一步都有来由</h2>
-<div class="route"><a href="#match">① 要知道什么？</a><a href="#symbol">② 怎样留下记录？</a><a href="#carry">③ 怎样得到新结果？</a><a href="#algorithm">④ 步骤怎样组织？</a><a href="#machine">⑤ 谁来执行？</a><a href="#turing">⑥ 怎样描述执行？</a><a href="#stored">⑦ 怎样换一道题？</a><a href="#cpu">⑧ 指令怎样运行？</a><a href="#isa">⑨ 怎样一起算？</a><a href="#runtime">⑩ 怎样分配工作？</a></div>
+<div class="route"><a href="#match">① 要知道什么？</a><a href="#symbol">② 怎样留下记录？</a><a href="#carry">③ 怎样得到新结果？</a><a href="#algorithm">④ 步骤怎样组织？</a><a href="#machine">⑤ 谁来执行？</a><a href="#turing">⑥ 怎样描述执行？</a><a href="#instruction">⑦ 怎样告诉机器做什么？</a><a href="#program">程序和地址</a><a href="#stored">存储程序</a><a href="#cpu">⑧ 指令怎样运行？</a><a href="#isa">⑨ 怎样一起算？</a><a href="#runtime">⑩ 怎样分配工作？</a></div>
 </nav>
 <h2 id="mechanisms">从现实问题到自动计算</h2><section id="match">
 <div class="eyebrow">01 · 需求</div>
@@ -194,12 +194,27 @@ section{scroll-margin-top:12px}details{margin-top:14px}
 <p>上面演示的是一台特定图灵机。通用图灵机还能读取另一台图灵机的编码及其输入，逐步模拟它。规则的描述也成了可处理的符号。这个模型用来研究什么可以由机械步骤计算，以及哪些问题不存在通用算法。</p>
 <a href="https://theory.stanford.edu/~trevisan/cs172-07/turing36.pdf">图灵原论文</a></details>
 <details class="players"><summary>产业与研究展签</summary><p><strong>图灵 · 理论工作</strong>　通用机器模型在此对应可计算性研究。原论文见上方展签。</p></details>
-<a class="continue" href="#stored">规则也能编码，怎样让实际硬件读取程序？ ↓</a></section>
+<a class="continue" href="#instruction">回到一道具体的题，机器怎样知道要做什么？ ↓</a></section>
+<section id="instruction">
+<h2>同样是 2 和 3，机器怎么知道加还是减？</h2>
+<p>前面的装置按明确步骤工作。现在保留两个数，让同一台机器根据一条操作要求来换题。</p>
+<div class="recipe"><span>数据<br><b>2 · 3</b></span><span><label>操作 <select id="task-operation"><option value="ADD">ADD · 相加</option><option value="SUB">SUB · 相减</option></select></label></span><span>结果<br><output id="task-result">5</output></span></div>
+<p>把操作写成机器能识别的描述，就得到指令。图中用 ADD、SUB 帮助阅读，实际机器用编码识别它们。</p>
+<a class="continue" href="#program">告诉它加法，还需要交代什么？ ↓</a>
+</section>
+<section id="program">
+<h2>数在哪里，算完放哪里？</h2>
+<p>先给每个存储位置一个地址。地址像格子的编号，用来定位内容。</p>
+<div class="recipe"><span>地址 4<br>数据 2</span><span>地址 5<br>数据 3</span><span>地址 6<br>留给结果</span></div>
+<p>完整任务还要取数、保存结果并结束。把这些指令按顺序排列，就是这台教学机的程序。</p>
+<ol><li><code>LOAD 4</code> · 从地址 4 取出 2</li><li><code>ADD 5</code> · 加上地址 5 的 3</li><li><code>STORE 6</code> · 把结果存到地址 6</li><li><code>HALT</code> · 停止</li></ol>
+<a class="continue" href="#stored">这些指令本身放在哪里？ ↓</a>
+</section>
 <section id="stored">
-<div class="eyebrow">06 · 存储程序</div>
-<h2>同一台机器怎样换一道题？</h2><p>纸带实验让我们看到规则和状态如何决定下一步。通用图灵机进一步把另一台机器的规则也编码为符号。建造可编程电子计算机时，一个核心问题随之出现：程序放在哪里，硬件怎样读到它？</p>
-<div class="chain tiles"><div><b>输入</b><small>载入程序与数据</small></div><span>→</span><div><b>存储器</b><small>地址 → 指令或数据</small></div><span>↔</span><div><b>处理器</b><small>取指 · 译码 · 执行</small></div><span>→</span><div><b>输出</b><small>呈现结果</small></div></div>
-<p class="next">指令也能存起来。改写存储器里的程序，同一台机器就能执行另一套步骤。</p>
+<h2>把程序也放进存储器，怎样换题？</h2>
+<p>把刚才的四条指令放在地址 0 到 3，数据仍放在地址 4 和 5。执行装置从地址 0 开始逐条读取。</p>
+<div class="recipe"><span>0–3 · 程序<br>取数 → 运算 → 保存 → 停止</span><span>4–6 · 数据<br>2 · 3 · 结果</span></div>
+<p>只把地址 1 的 ADD 5 改成 SUB 5，结果就从 5 变成 −1。这是本例中存储程序的作用：硬件从存储器读到另一条操作，就执行另一项任务。</p>
 <details><summary>1945–1948 · 从设计报告到运行</summary>
 <p>1945 年的 EDVAC 草案描述了运算、控制、存储和输入输出等组成部分。1948 年，曼彻斯特 Baby 在电子存储器上运行程序。图灵机回答“规则能描述怎样的计算”，存储程序体系回答“硬件如何取出并执行程序”。</p>
 <p><a href="https://library.si.edu/digital-library/book/firstdraftofrepo00vonn">EDVAC 草案</a> · <a href="https://www.computerhistory.org/storageengine/williams-demonstrates-crt-storage/">CHM 曼彻斯特 Baby 史料</a></p>
@@ -208,7 +223,11 @@ section{scroll-margin-top:12px}details{margin-top:14px}
 <a class="continue" href="#cpu">程序放进存储器后，谁来逐条执行？ ↓</a></section>
 <section id="cpu">
 <div class="eyebrow">07 · CPU</div>
-<h2>CPU 怎样执行一条指令？</h2>
+<h2>谁来读取和执行这四条指令？</h2>
+<p>我们需要一个控制器决定读哪条指令，一个运算器做加减，还要用寄存器暂存位置和数值。这些部件组成中央处理器，也就是 CPU。</p>
+<div class="recipe"><span>控制器<br>读指令、安排动作</span><span>运算器<br>完成加减等操作</span><span>寄存器<br>暂存地址与中间结果</span></div>
+<p>下面跑的就是刚才那份程序。PC 保存下一条指令的地址，ACC 保存刚取出的数或运算结果。高亮内存行表示当前访问的位置。</p>
+<h3>点一步，看看指令怎样推进</h3>
 <label>修改程序 <select id="operation"><option value="ADD">相加 2 + 3</option><option value="SUB">相减 2 − 3</option></select></label>
 <ol id="cpu-flow" aria-label="指令执行路径">
 <li>取指<small>PC → 内存 → 指令寄存器</small></li>
@@ -226,14 +245,14 @@ section{scroll-margin-top:12px}details{margin-top:14px}
 <p>控制器用 PC 取指并译码。寄存器保存当前地址和中间结果。算术逻辑单元按指令执行加减。教学机用助记符显示指令，实际硬件依据指令编码识别操作与操作数。</p>
 </details>
 <details class="players"><summary>产业与研究展签</summary><p><strong>Busicom × Intel · 从计算器需求到微处理器</strong>　Busicom 的计算器项目促成 Intel 4004。1971 年发布的 4004 把 CPU 集成到单颗芯片。<a href="https://www.intel.com/content/www/us/en/history/virtual-vault/articles/the-intel-4004.html">Intel 档案</a></p></details>
-<a class="continue" href="#software">从人写的程序到机器指令，中间发生什么？ ↓</a></section>
+<a class="continue" href="#software">四条指令已经要逐条安排，复杂任务怎么办？ ↓</a></section>
 <h2 id="next">从一条指令到软硬件协作</h2>
 <section id="software">
-<h2>人写的程序，怎样变成 CPU 的动作？</h2>
-<div class="recipe"><span>源代码<br><code>sum = a + b</code></span><span>编译器<br>生成机器指令</span><span>ISA<br>约定指令含义</span><span>微架构<br>完成取指与执行</span></div>
+<h2>每道题都要逐条写这些指令吗？</h2>
+<p>刚才我们手动安排了取数、运算和保存。任务更复杂时，可以用编程语言描述计算，再由编译器生成目标处理器的指令。</p><div class="recipe"><span>源代码<br><code>sum = a + b</code></span><span>编译器<br>生成机器指令</span><span>ISA<br>约定指令含义</span><span>微架构<br>完成取指与执行</span></div>
 <p>上一节用 LOAD、ADD、STORE 显示指令。实际机器读取的是指令编码。ISA 约定编码、寄存器和操作的行为，微架构决定怎样实现它。</p>
 <details><summary>继续研究软硬件接口</summary><a href="https://riscv.org/specifications/ratified/">RISC-V 官方规范入口</a></details>
-<a class="continue" href="#isa">任务变多，怎样增加执行能力？ ↓</a>
+<a class="continue" href="#isa">知道了单条指令怎样执行，四组加法可以一起算吗？ ↓</a>
 </section><section id="isa">
 <div class="eyebrow">08 · 指令集与执行方式</div>
 <h2>四组加法，可以一起算吗？</h2><p>刚才的 CPU 教学机每次执行一条加法指令。把输入换成四组互不依赖的数据，就可以观察逐组计算与并行计算的区别。</p>
@@ -666,6 +685,13 @@ function showRecipe() {
 byId('recipe-step').onclick = () => { bags++; showRecipe(); };
 byId('recipe-reset').onclick = () => { bags = 0; showRecipe(); };
 showRecipe();
+
+const taskOperation = byId('task-operation');
+taskOperation.onchange = () => {
+    byId('task-result').textContent = taskOperation.value === 'ADD' ? 5 : -1;
+    operation.value = taskOperation.value;
+    resetCpu();
+};
 </script>
 </body>
 </html>
