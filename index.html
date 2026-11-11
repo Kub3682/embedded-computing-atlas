@@ -249,19 +249,43 @@ section{scroll-margin-top:12px}details{margin-top:14px}
 <h2 id="next">从一条指令到软硬件协作</h2>
 <section id="software">
 <h2>每道题都要逐条写这些指令吗？</h2>
-<p>刚才我们手动安排了取数、运算和保存。任务更复杂时，可以用编程语言描述计算，再由编译器生成目标处理器的指令。</p><div class="recipe"><span>源代码<br><code>sum = a + b</code></span><span>编译器<br>生成机器指令</span><span>ISA<br>约定指令含义</span><span>微架构<br>完成取指与执行</span></div>
-<p>上一节用 LOAD、ADD、STORE 显示指令。实际机器读取的是指令编码。ISA 约定编码、寄存器和操作的行为，微架构决定怎样实现它。</p>
-<details><summary>继续研究软硬件接口</summary><a href="https://riscv.org/specifications/ratified/">RISC-V 官方规范入口</a></details>
-<a class="continue" href="#isa">知道了单条指令怎样执行，四组加法可以一起算吗？ ↓</a>
-</section><section id="isa">
-<div class="eyebrow">08 · 指令集与执行方式</div>
-<h2>四组加法，可以一起算吗？</h2><p>刚才的 CPU 教学机每次执行一条加法指令。把输入换成四组互不依赖的数据，就可以观察逐组计算与并行计算的区别。</p>
+<p>刚才手动安排了取数、计算和保存。编程语言让人用更接近问题的表达来写程序，再由编译器生成目标机器的指令。</p>
+<div class="recipe"><span>源代码<br><code>sum = a + b</code></span><span>编译器<br>选择并安排指令</span><span>机器程序<br>LOAD → ADD → STORE</span></div>
+<a class="continue" href="#instruction-contract">编译器怎样知道 ADD 会产生什么结果？ ↓</a>
+</section>
+<section id="instruction-contract">
+<h2>一条 ADD，究竟约定了什么？</h2>
+<p>回到教学机的 ADD 5。这里的 5 是地址，地址 5 里的数是 3。ACC 初始为 2。</p>
+<div class="recipe"><span>执行前<br>ACC = 2<br>内存[5] = 3</span><span>指令<br><code>ADD 5</code><br>把内存[5]加到 ACC</span><span>执行后<br>ACC = 5<br>内存[5]仍为 3</span></div>
+<p>指令规定软件能观察到的行为。在真实 ISA 中，还需要规定操作数宽度、结果溢出、标志位等细节。</p>
+<details><summary>从一条指令到一套指令集</summary><p>LOAD 规定怎样取数，ADD 规定怎样相加，STORE 规定怎样写入，跳转指令规定怎样改变执行位置。ISA（指令集体系结构）把指令及编码、可见寄存器和相关行为组织成软硬件共同遵守的约定。</p><a href="https://riscv.org/specifications/ratified/">继续读 RISC-V 官方规范</a></details>
+<a class="continue" href="#microarchitecture">结果约定好了，内部一定只有一种做法吗？ ↓</a>
+</section>
+<section id="microarchitecture">
+<h2>同一条加法，内部可以怎样完成？</h2>
+<p>用两位十进制加法看内部设计。两台教学装置都要算出 28 + 35 = 63。</p>
+<div class="recipe"><span><b>装置 A · 复用一个加法单元</b><br>先算个位 8 + 5，留下 3 并保存进位。再算十位 2 + 3 + 1，得到 6。</span><span><b>装置 B · 两个数位的电路连接</b><br>个位与十位各有运算电路，进位沿连接传到十位，形成结果 63。</span></div>
+<p>两者的计算结果相同，电路数量和完成过程不同。微架构就是处理器内部的具体组织，包括运算单元、寄存器、数据通路和控制方式。</p>
+<details><summary>为什么同一 ISA 能有不同处理器？</summary><p>软件按 ISA 依赖指令行为。设计者可以在满足这些行为的前提下改变内部组织，以适应面积、能耗和性能目标。上面的十进制装置用于解释资源复用，真实数字处理器通常在二进制电路上实现运算。</p></details>
+<a class="continue" href="#pipeline">如果接连执行很多条指令，哪些部件会闲着？ ↓</a>
+</section>
+<section id="pipeline">
+<h2>上一条在计算，下一条能先取来吗？</h2>
+<p>教学机每次把一条指令完整做完。流水线让不同指令处在不同阶段，利用原本空闲的部件。</p>
+<div class="table-scroll"><table><caption>三条独立运算的示意安排</caption><thead><tr><th>指令</th><th>时段 1</th><th>时段 2</th><th>时段 3</th><th>时段 4</th><th>时段 5</th></tr></thead><tbody><tr><th>A</th><td>取指</td><td>译码</td><td>执行</td><td></td><td></td></tr><tr><th>B</th><td></td><td>取指</td><td>译码</td><td>执行</td><td></td></tr><tr><th>C</th><td></td><td></td><td>取指</td><td>译码</td><td>执行</td></tr></tbody></table></div>
+<p>这里简化为三个阶段。阶段可以重叠，实际处理器还要处理数据依赖、分支和资源冲突。</p>
+<details><summary>还有哪些内部改进？</summary><p>增加执行单元可以同时处理更多独立操作。缓存把部分常用数据留在处理器附近，减少等待。这些设计都要衡量资源成本与工作负载。</p></details>
+<a class="continue" href="#isa">除了安排多条指令，一条指令能否表达更多计算？ ↓</a>
+</section>
+<section id="isa">
+<div class="eyebrow">从单个元素到一组数据</div>
+<h2>四组加法，可以一起算吗？</h2><p>刚才流水线重叠了多条指令的阶段。现在换一个问题：四组数据都要相加，能否用一条指令表达整组操作？这会把我们引向 SIMD 指令及执行它的多条数据通道。</p>
 <div class="chain tiles">
 <div><b>ADD × 4</b><small>标量 · 分别表达四组加法</small></div>
 <div><b>VADD × 1</b><small>向量 · 一次表达四组加法</small></div>
 <div><b>提交加法任务</b><small>卸载 · 由另一执行单元接手</small></div>
 </div>
-<p class="next">ISA 约定指令的含义。微架构决定怎样完成它，包括分几拍、用几条执行通道。</p>
+<p class="next">标量加法逐项表达操作。SIMD 扩展了指令的表达能力，相应硬件提供多个数据通道。独立加速器则需要 CPU 提交任务，进入跨单元协作。</p>
 <div class="execution">
 <div class="eyebrow">EXECUTION EXPLORER</div>
 <h3>一眼看懂数据怎样穿过硬件</h3>
