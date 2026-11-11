@@ -111,12 +111,12 @@ select,input{max-width:100%;box-sizing:border-box}
 <div class="eyebrow">嵌入式产品认知体系 · 从计算之前开始</div>
 <h1>计算的本质</h1>
 <p class="lead">从记账到 CPU · 每一站看人把哪一步交给工具。</p><p><small>沿需求推导机制。历史上，不同工具可以并存，演进也有分支。</small></p>
-<div class="chain"><a href="#mechanisms">Ⅰ 机制图谱</a><a href="#next">Ⅱ 工程架构</a><a href="#product-map">车规 MCU 地图</a><a href="#measure">Ⅲ 度量验证</a></div></header>
+<div class="chain"><a href="#mechanisms">Ⅰ 从数数到计算机</a><a href="#next">Ⅱ 芯片怎样分工</a><a href="#product-map">车规 MCU 地图</a><a href="#measure">Ⅲ 怎样判断更快</a></div></header>
 <nav aria-label="第一性原理推导">
 <h2>人在算什么？机器接手了什么？</h2>
-<div class="chain"><a href="#match">现实问题</a><span>→</span><a href="#symbol">抽象与表示</a><span>→</span><a href="#carry">操作规则</a><span>→</span><a href="#machine">机器执行</a><span>→</span><a href="#turing">图灵机</a><span>→</span><a href="#stored">存储程序</a><span>→</span><a href="#cpu">CPU</a></div>
+<div class="chain"><a href="#match">现实问题</a><span>→</span><a href="#symbol">抽象与表示</a><span>→</span><a href="#carry">怎么算</a><span>→</span><a href="#machine">机器怎样代劳</a><span>→</span><a href="#turing">图灵机</a><span>→</span><a href="#stored">存储程序</a><span>→</span><a href="#cpu">CPU</a></div>
 </nav>
-<h2 id="mechanisms">Ⅰ · 机制图谱</h2><section id="match">
+<h2 id="mechanisms">Ⅰ · 从数数到计算机</h2><section id="match">
 <div class="eyebrow">01 · 需求</div>
 <h2>少了一只羊吗？</h2>
 <div class="model"><span>出栏</span><span aria-label="三只羊">🐑 🐑 🐑</span><span>留记</span><span aria-label="三颗石子">● ● ●</span><span>未配对</span><output id="stones" aria-live="polite" aria-label="剩余三颗石子">● ● ●</output></div>
@@ -132,20 +132,20 @@ select,input{max-width:100%;box-sizing:border-box}
 <div><b>三个</b><small>抽象对象 · 数量</small></div><span>→</span>
 <div><b>●●● / 3 / 11₂</b><small>表示 · 石子 / 数字 / 编码</small></div>
 </div>
-<p class="next">表示变了，数量没有变。计算规则决定怎样操作这些表示。</p>
+<p class="next">表示变了，数量没有变。接下来试试用这些符号算出一个新结果。</p>
 <details><summary>计算对象只有数量吗？</summary><p>也可以是顺序、真假或符号序列。比如「门已关」与「钥匙有效」是两个真假值，按“且”的规则可得出是否允许启动。</p></details>
 </section>
 <section id="carry">
 <div class="eyebrow">03 · 规则</div>
-<h2>第十颗石子来了怎么办？</h2>
-<div class="model digits"><span>十位</span><output id="tens">0</output><span>个位</span><output id="ones">8</output></div>
+<h2>有了数字，怎么算出结果？</h2>
+<p>进制约定数字怎么写。加法规则告诉我们加 1 后怎么更新数字。十进制逢十进一，二进制逢二进一。同样是从 1 加到 2，十进制写作 2，二进制写作 10。</p><div class="model digits"><span>十位</span><output id="tens">0</output><span>个位</span><output id="ones">8</output></div>
 <button id="add-one">加 1</button> <button id="reset-count">重来</button>
 <p id="carry-note" class="next" aria-live="polite">每满十个一，换成一个十。</p>
-<details><summary>为什么要让装置接管进位？</summary><p>只要按同一记数约定操作，进位就会反复出现。让相邻数位的机构联动，可以减少手动操作和漏进位。</p></details>
+<details><summary>布尔和香农 · 怎样计算一个判断？</summary><p>门关好、钥匙有效，两项都成立才允许启动。这是逻辑里的「且」。布尔用代数表达逻辑，香农后来用布尔代数分析继电器电路。串联的两个开关都闭合时，电路才导通。</p><a href="https://www.computerhistory.org/revolution/digital-logic/12/269">计算机历史博物馆 · 布尔逻辑</a></details><details><summary>进位怎样交给装置？</summary><p>只要按同一记数约定操作，进位就会反复出现。让相邻数位的机构联动，可以减少手动操作和漏进位。</p></details>
 </section>
 <section id="machine">
 <div class="eyebrow">04 · 执行</div>
-<h2>还能交给机器多少？</h2>
+<h2>能让机器替我们进位吗？</h2><p>刚才点一次「加 1」，个位从 9 回到 0 时，十位自动加了 1。网页替你做了进位。机械计算器也能接手这一步，人转动个位轮，机构带动十位轮。</p>
 <div class="chain tiles">
 <div><b>●●●</b><small>记录工具保存状态</small></div><span>→</span>
 <div><b>9 + 1 → 10</b><small>计算装置接管固定操作</small></div><span>→</span>
@@ -160,7 +160,7 @@ select,input{max-width:100%;box-sizing:border-box}
 </section>
 <section id="turing">
 <div class="eyebrow">05 · 可计算性</div>
-<h2>怎样定义“按规则算”？</h2>
+<h2>怎样把一套步骤交给机器？</h2><p>齿轮可以重复进位。遇到不同符号时，机器还需要知道该做哪一步。图灵用纸带和规则表描述了这种过程。</p>
 <div class="chain tiles"><div><b>读</b><small>当前格的符号</small></div><span>→</span><div><b>查规则</b><small>内部状态 × 符号</small></div><span>→</span><div><b>写 · 移 · 换状态</b><small>重复，或停机</small></div></div>
 <p>实验：在一元计数 <code>111</code> 末尾添一个 <code>1</code>。</p>
 <div id="tape" class="tape" aria-label="图灵机纸带"><span class="current">1</span><span>1</span><span>1</span><span>□</span><span>□</span></div>
@@ -173,7 +173,7 @@ select,input{max-width:100%;box-sizing:border-box}
 </section>
 <section id="stored">
 <div class="eyebrow">06 · 存储程序</div>
-<h2>换一道题，要换接线吗？</h2>
+<h2>同一台机器怎样换一道题？</h2><p>纸带实验按一套固定规则运行。把要执行的步骤写成指令并存入内存，处理器就可以读取另一组指令来换题。</p>
 <div class="chain tiles"><div><b>输入</b><small>载入程序与数据</small></div><span>→</span><div><b>存储器</b><small>地址 → 指令或数据</small></div><span>↔</span><div><b>处理器</b><small>取指 · 译码 · 执行</small></div><span>→</span><div><b>输出</b><small>呈现结果</small></div></div>
 <p class="next">指令也能存起来。改写存储器里的程序，同一台机器就能执行另一套步骤。</p>
 <details><summary>1945–1948 · 从设计报告到运行</summary>
@@ -184,7 +184,7 @@ select,input{max-width:100%;box-sizing:border-box}
 </section>
 <section id="cpu">
 <div class="eyebrow">07 · CPU</div>
-<h2>按一步，CPU 里面发生什么？</h2>
+<h2>CPU 怎样执行一条指令？</h2>
 <label>修改程序 <select id="operation"><option value="ADD">相加 2 + 3</option><option value="SUB">相减 2 − 3</option></select></label>
 <ol id="cpu-flow" aria-label="指令执行路径">
 <li>取指<small>PC → 内存 → 指令寄存器</small></li>
@@ -203,10 +203,10 @@ select,input{max-width:100%;box-sizing:border-box}
 </details>
 <details class="players"><summary>产业与研究展签</summary><p><strong>Busicom × Intel · 从计算器需求到微处理器</strong>　Busicom 的计算器项目促成 Intel 4004。1971 年发布的 4004 把 CPU 集成到单颗芯片。<a href="https://www.intel.com/content/www/us/en/history/virtual-vault/articles/the-intel-4004.html">Intel 档案</a></p></details>
 </section>
-<h2 id="next">Ⅱ · 工程架构</h2>
+<h2 id="next">Ⅱ · 芯片怎样分工</h2>
 <section id="isa">
 <div class="eyebrow">08 · 指令集与执行方式</div>
-<h2>同一批加法，指令怎样表达？</h2>
+<h2>四组加法，可以一起算吗？</h2><p>刚才的 CPU 教学机每次执行一条加法指令。把输入换成四组互不依赖的数据，就可以观察逐组计算与并行计算的区别。</p>
 <div class="chain tiles">
 <div><b>ADD × 4</b><small>标量 · 分别表达四组加法</small></div>
 <div><b>VADD × 1</b><small>向量 · 一次表达四组加法</small></div>
@@ -244,8 +244,8 @@ select,input{max-width:100%;box-sizing:border-box}
 </section>
 <section id="product-map">
 <div class="eyebrow">09 · 从机制到产品</div>
-<h2>一颗 MCU 里，谁负责哪类计算？</h2>
-<p>选一颗芯片，按执行位置拆开看。</p>
+<h2>一颗芯片里有哪些帮手？</h2>
+<p>刚才的动画一次展示一种执行方式。选一颗真实芯片，看看主核和哪些专用单元会同时出现在里面。</p>
 <label>产品 <select id="product-select"></select></label>
 <div class="product-grid" id="product-layout" aria-live="polite"></div>
 <p><a href="#runtime">继续看软件如何交接任务 ↓</a></p>
@@ -257,7 +257,7 @@ select,input{max-width:100%;box-sizing:border-box}
 </section>
 <section id="runtime">
 <div class="eyebrow">10 · 任务生命周期</div>
-<h2>把运算交出去，谁负责交接？</h2>
+<h2>CPU 怎样把任务交给加速器？</h2><p>主核用自己的向量指令就能开始计算。让独立加速器接手时，软件还要交代输入放在哪里、结果何时可读。</p>
 <div class="chain tiles"><div><b>提交</b><small>任务描述、精度、截止期</small></div><span>→</span><div><b>排队 · 准备</b><small>选择后端、明确缓冲区归属</small></div><span>→</span><div><b>执行</b><small>驱动触发、监测超时</small></div><span>→</span><div><b>完成</b><small>同步结果、记录指标</small></div></div>
 <p class="next">中间件统一交接流程，后端声明自己的能力和限制。</p>
 <details><summary>汽车 MCU 项目方案 · 展开分层</summary>
@@ -266,10 +266,10 @@ select,input{max-width:100%;box-sizing:border-box}
 </details>
 <details class="players"><summary>产业与研究展签</summary><p><strong>Infineon · AURIX TC49x</strong>　PPU 有自己的标量核心和向量单元，适合对照页面中的「CPU 内 SIMD」与「独立后端卸载」。<a href="https://www.infineon.com/products/microcontroller/32-bit-tricore/aurix-tc4x/tc49x">Infineon 产品资料</a></p></details>
 </section>
-<h2 id="measure">Ⅲ · 度量验证</h2>
+<h2 id="measure">Ⅲ · 怎样判断更快</h2>
 <section>
 <div class="eyebrow">11 · 端到端实验</div>
-<h2>计算段变短，结果就更早到吗？</h2>
+<h2>用了加速器，结果一定更早到吗？</h2>
 <p><small>教学假设。CPU 每项 4 μs，加速器每项 1 μs，提交固定 12 μs。</small></p>
 <label>批量 <input id="batch" type="range" min="1" max="64" value="16"> <span id="batch-value"></span></label>
 <label>排队 μs <input id="queue" type="range" min="0" max="120" value="10"> <span id="queue-value"></span></label>
@@ -610,6 +610,7 @@ filterProducts();
 </script>
 </body>
 </html>
+
 
 
 
