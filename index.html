@@ -120,20 +120,17 @@ section{scroll-margin-top:12px}details{margin-top:14px}
 <h1>计算的本质</h1>
 <p class="lead">清点一群羊，为什么最终会引出计算机？</p><p><small>动手操作，沿问题向前。背景故事和原始论文可以展开阅读。</small></p>
 <div class="chain"><a href="#mechanisms">从数数到计算机</a><a href="#next">软硬件怎样协作</a><a href="#product-map">车规 MCU 地图</a><a href="#measure">怎样判断更快</a></div></header>
-<nav aria-label="阅读路线">
-<h2>沿着问题走，每一步都有来由</h2>
-<div class="route"><a href="#match">① 要知道什么？</a><a href="#symbol">② 怎样留下记录？</a><a href="#carry">③ 怎样得到新结果？</a><a href="#algorithm">④ 步骤怎样组织？</a><a href="#machine">⑤ 谁来执行？</a><a href="#turing">⑥ 怎样描述执行？</a><a href="#instruction">⑦ 怎样告诉机器做什么？</a><a href="#program">程序和地址</a><a href="#stored">存储程序</a><a href="#cpu">⑧ 指令怎样运行？</a><a href="#isa">⑨ 怎样一起算？</a><a href="#runtime">⑩ 怎样分配工作？</a></div>
-</nav>
+<nav aria-label="阅读路线"><h2>选择起点，或顺着每节末尾继续</h2><details><summary>从记录到步骤</summary><div class="route"><a href="#match">少了一只羊吗？</a><a href="#symbol">羊群不在眼前，除了石子，还能怎样记下来？</a><a href="#carry">记录下来的数量，怎样继续用？</a><a href="#algorithm">要核对三群羊，怎样把步骤安排好？</a><a href="#machine">能让机器替我们进位吗？</a><a href="#turing">怎样把一套步骤交给机器？</a></div></details><details><summary>从程序到处理器</summary><div class="route"><a href="#instruction">同样是 2 和 3，机器怎么知道加还是减？</a><a href="#program">数在哪里，算完放哪里？</a><a href="#stored">把程序也放进存储器，怎样换题？</a><a href="#instruction-contract">一条 ADD，究竟约定了什么？</a><a href="#cpu">谁来读取和执行这四条指令？</a><a href="#software">每道题都要逐条写这些指令吗？</a><a href="#microarchitecture">同一条加法，内部可以怎样完成？</a><a href="#pipeline">上一条在计算，下一条能先取来吗？</a></div></details><details><summary>从并行到协作</summary><div class="route"><a href="#isa">四组加法，可以一起算吗？</a><a href="#product-map">一颗芯片怎样组合这些执行资源？</a><a href="#runtime">CPU 怎样把任务交给加速器？</a></div></details></nav>
 <h2 id="mechanisms">从现实问题到自动计算</h2><section id="match">
-<div class="eyebrow">01 · 需求</div>
-<h2>少了一只羊吗？</h2><p>羊群回来后，要确认每一只都回来了。出栏时留下一颗石子，回来一只就取走一颗。</p>
+<div class="eyebrow">需求</div>
+<h2>少了一只羊吗？</h2><p>羊群回来后，要确认回来的数量是否对上。出栏时留下一颗石子，回来一只就取走一颗。</p>
 <div class="model"><span>出栏</span><span aria-label="三只羊">🐑 🐑 🐑</span><span>留记</span><span aria-label="三颗石子">● ● ●</span><span>未配对</span><output id="stones" aria-live="polite" aria-label="剩余三颗石子">● ● ●</output></div>
 <button id="return-sheep">回来一只</button> <button id="reset-sheep">重来</button>
 <p class="next">一只羊 ↔ 一颗石子。剩下的石子对应未归的羊。</p>
 <details><summary>同一个问题，还可以在哪里遇到？</summary><p>盘点库存、核对发放名单、检查工具是否归还。这里的羊和石子是思想实验，用来演示一一对应。</p></details>
-<details><summary>历史展签 · 为什么需要账目？</summary><p>古代美索不达米亚的经济管理需要记录物资收支。乌鲁克泥板留下了早期记账证据，显示记录可以服务于跨时间核对。</p><a href="https://www.metmuseum.org/es/essays/the-origins-of-writing">大都会艺术博物馆 · 早期书写</a></details><a class="continue" href="#symbol">羊群不在眼前，石子怎样代替它？ ↓</a></section>
+<details><summary>历史展签 · 为什么需要账目？</summary><p>古代美索不达米亚的经济管理需要记录物资收支。乌鲁克泥板留下了早期记账证据，显示记录可以服务于跨时间核对。</p><a href="https://www.metmuseum.org/es/essays/the-origins-of-writing">大都会艺术博物馆 · 早期书写</a></details><a class="continue" href="#symbol">除了带着石子，还能怎样留下记录？ ↓</a></section>
 <section id="symbol">
-<div class="eyebrow">02 · 抽象与表示</div>
+<div class="eyebrow">抽象与表示</div>
 <h2>羊群不在眼前，除了石子，还能怎样记下来？</h2>
 <p>三只羊要带三颗石子。羊再多一些呢？试着把数量写下来。</p>
 <div class="recipe"><span><b>🐑 🐑 🐑</b><br>要记录的羊群</span><span><b>● ● ●</b><br>三颗石子</span><span><b>｜｜｜</b><br>三道刻痕</span><span><b>羊 · 3</b><br>类别 + 数量</span></div>
@@ -149,7 +146,7 @@ section{scroll-margin-top:12px}details{margin-top:14px}
 <a class="continue" href="#carry">已经能记下数量，怎样算出一个新结果？ ↓</a>
 </section>
 <section id="carry">
-<div class="eyebrow">03 · 规则</div>
+<div class="eyebrow">规则</div>
 <h2>记录下来的数量，怎样继续用？</h2>
 <p>已回来三只羊，又回来一只。记录也要跟着更新。</p>
 <div class="recipe"><span>原来<br>● ● ●<br>3 只</span><span>又回来一只<br>●<br>加 1</span><span>现在<br>● ● ● ●<br>4 只</span></div>
@@ -173,15 +170,15 @@ section{scroll-margin-top:12px}details{margin-top:14px}
 <a class="continue" href="#algorithm">要核对很多群羊，怎样安排这些操作？ ↓</a></section>
 <section id="algorithm">
 <h2>要核对三群羊，怎样把步骤安排好？</h2>
-<p>假设每群出栏两只，逐群清点。这个简化实验里每群都回来两只，要累加已归总数，并记住核对了几群。</p>
-<div class="recipe"><span>已归总数从 0 开始</span><span>核对一群 → 加 2</span><span>还有羊群？继续 ↺</span><span>没有了 → 结束</span></div>
+<p>三群依次核对。先预测哪群需要继续寻找，再点按钮验证。</p>
+<div class="recipe"><span>甲 · 出栏 2 / 已归 2</span><span>乙 · 出栏 3 / 已归 2</span><span>丙 · 出栏 1 / 已归 1</span></div><p>比较数量 → 记下结果 → 转向下一群 → 三群完成后停止。</p>
 <button id="recipe-step">核对一群</button> <button id="recipe-reset">重来</button>
 <output id="recipe-result" aria-live="polite"></output>
-<p>算法把操作、顺序、重复和停止条件组织成可执行的步骤。已核对的群数和已归总数是执行过程中要保存的状态。</p>
+<p>算法把操作、顺序、重复和停止条件组织成可执行的步骤。已核对的群数和各群结果，就是这套流程保存的状态。</p>
 <a class="continue" href="#machine">这些步骤，可以由装置来做吗？ ↓</a>
 </section><section id="machine">
-<div class="eyebrow">04 · 执行</div>
-<h2>能让机器替我们进位吗？</h2><p>刚才点一次「加 1」，个位从 9 回到 0 时，十位自动加了 1。网页替你做了进位。机械计算器也能接手这一步，人转动个位轮，机构带动十位轮。</p>
+<div class="eyebrow">执行</div>
+<h2>能让机器替我们进位吗？</h2><p>核对流程包含计数和比较。先看计数中的进位：前面的网页已替你完成 9 → 10。机械计算器用机构完成这一步，人转动个位轮，机构带动十位轮。</p>
 <div class="chain tiles">
 <div><b>●●●</b><small>记录工具保存状态</small></div><span>→</span>
 <div><b>9 + 1 → 10</b><small>机构执行进位</small></div><span>→</span>
@@ -195,18 +192,18 @@ section{scroll-margin-top:12px}details{margin-top:14px}
 <p><strong>Tabulating Machine Company · 穿孔卡制表</strong>　霍列里斯的设备将人口属性编码为孔位并汇总。其公司后来成为 IBM 的前身之一。<a href="https://computerhistory.org/exhibits/revolution/">CHM</a></p></details>
 <a class="continue" href="#turing">操作交给装置后，怎样精确描述下一步？ ↓</a></section>
 <section id="turing">
-<div class="eyebrow">05 · 可计算性</div>
-<h2>怎样把一套步骤交给机器？</h2><p>齿轮可以重复进位。遇到不同符号时，机器还需要知道该做哪一步。图灵用纸带和规则表描述了这种过程。</p>
-<div class="chain tiles"><div><b>读</b><small>当前格的符号</small></div><span>→</span><div><b>查规则</b><small>内部状态 × 符号</small></div><span>→</span><div><b>写 · 移 · 换状态</b><small>重复，或停机</small></div></div>
-<p>实验：在一元计数 <code>111</code> 末尾添一个 <code>1</code>。</p>
+<div class="eyebrow">可计算性</div>
+<h2>怎样把一套步骤交给机器？</h2><p>把操作交给装置，必须说清楚每一步。先试两条规则：看到 1，向右移。看到空白，写 1 并停止。</p>
+<div class="chain tiles"><div><b>读</b><small>当前格的符号</small></div><span>→</span><div><b>查规则</b><small>当前位置看到什么？</small></div><span>→</span><div><b>写 · 移 · 换状态</b><small>重复，或停机</small></div></div>
+<p>实验：用每个 1 代表一个单位，在 <code>111</code> 末尾添一个 <code>1</code>，相当于加一。</p>
 <div id="tape" class="tape" aria-label="图灵机纸带"><span class="current">1</span><span>1</span><span>1</span><span>□</span><span>□</span></div>
 <button id="tape-step">执行一步</button> <button id="tape-reset">重来</button>
-<p id="tape-state" aria-live="polite">扫描态 · 读到 1 就右移，读到空白就写 1 并停机。</p>
+<p id="tape-state" aria-live="polite">正在扫描 · 看到 1 右移，看到空白写 1 并停下。</p>
 <details><summary>1936 · 从专用规则到通用机器</summary>
 <p>上面演示的是一台特定图灵机。通用图灵机还能读取另一台图灵机的编码及其输入，逐步模拟它。规则的描述也成了可处理的符号。这个模型用来研究什么可以由机械步骤计算，以及哪些问题不存在通用算法。</p>
 <a href="https://theory.stanford.edu/~trevisan/cs172-07/turing36.pdf">图灵原论文</a></details>
-<details class="players"><summary>产业与研究展签</summary><p><strong>图灵 · 理论工作</strong>　通用机器模型在此对应可计算性研究。原论文见上方展签。</p></details>
-<a class="continue" href="#instruction">回到一道具体的题，机器怎样知道要做什么？ ↓</a></section>
+
+<a class="continue" href="#instruction">步骤本身也能写成记录，让机器读取吗？ ↓</a></section>
 <section id="instruction">
 <h2>同样是 2 和 3，机器怎么知道加还是减？</h2>
 <p>前面的装置按明确步骤工作。现在保留两个数，让同一台机器根据一条操作要求来换题。</p>
@@ -218,8 +215,8 @@ section{scroll-margin-top:12px}details{margin-top:14px}
 <h2>数在哪里，算完放哪里？</h2>
 <p>先给每个存储位置一个地址。地址像格子的编号，用来定位内容。</p>
 <div class="recipe"><span>地址 4<br>数据 2</span><span>地址 5<br>数据 3</span><span>地址 6<br>留给结果</span></div>
-<p>完整任务还要取数、保存结果并结束。把这些指令按顺序排列，就是这台教学机的程序。</p>
-<ol><li><code>LOAD 4</code> · 从地址 4 取出 2</li><li><code>ADD 5</code> · 加上地址 5 的 3</li><li><code>STORE 6</code> · 把结果存到地址 6</li><li><code>HALT</code> · 停止</li></ol>
+<p>运算时先把数放进一个暂存格，算完再写回存储器。完整任务还要取数、保存结果并结束。把这些指令按顺序排列，就是这台教学机的程序。</p>
+<ol><li><code>LOAD 4</code> · 从地址 4 取出 2，放进暂存格</li><li><code>ADD 5</code> · 把地址 5 的 3 加到暂存格</li><li><code>STORE 6</code> · 把结果存到地址 6</li><li><code>HALT</code> · 停止</li></ol>
 <a class="continue" href="#stored">这些指令本身放在哪里？ ↓</a>
 </section>
 <section id="stored">
@@ -232,13 +229,21 @@ section{scroll-margin-top:12px}details{margin-top:14px}
 <p><a href="https://library.si.edu/digital-library/book/firstdraftofrepo00vonn">EDVAC 草案</a> · <a href="https://www.computerhistory.org/storageengine/williams-demonstrates-crt-storage/">CHM 曼彻斯特 Baby 史料</a></p>
 </details>
 <details class="players"><summary>产业与研究展签</summary><p><strong>宾夕法尼亚大学 Moore School / 曼彻斯特大学 · 研究团队</strong>　分别对应 EDVAC 草案和 Baby 的运行验证。史料见上方展签。</p></details>
-<a class="continue" href="#cpu">程序放进存储器后，谁来逐条执行？ ↓</a></section>
+<a class="continue" href="#instruction-contract">先确认一条 ADD 应该改变什么？ ↓</a></section>
+<section id="instruction-contract">
+<h2>一条 ADD，究竟约定了什么？</h2>
+<p>回到教学机的 ADD 5。这里的 5 是地址，地址 5 里的数是 3。暂存格 初始为 2。</p>
+<div class="recipe"><span>执行前<br>暂存格 = 2<br>内存[5] = 3</span><span>指令<br><code>ADD 5</code><br>把内存[5]加到 暂存格</span><span>执行后<br>暂存格 = 5<br>内存[5]仍为 3</span></div>
+<p>指令规定软件能观察到的行为。真实指令还会规定可处理的数值范围等细节。</p>
+
+<a class="continue" href="#cpu">谁来执行这些约定？ ↓</a>
+</section>
 <section id="cpu">
-<div class="eyebrow">07 · CPU</div>
+<div class="eyebrow">CPU</div>
 <h2>谁来读取和执行这四条指令？</h2>
 <p>我们需要一个控制器决定读哪条指令，一个运算器做加减，还要用寄存器暂存位置和数值。这些部件组成中央处理器，也就是 CPU。</p>
 <div class="recipe"><span>控制器<br>读指令、安排动作</span><span>运算器<br>完成加减等操作</span><span>寄存器<br>暂存地址与中间结果</span></div>
-<p>下面跑的就是刚才那份程序。PC 保存下一条指令的地址，ACC 保存刚取出的数或运算结果。高亮内存行表示当前访问的位置。</p>
+<p>下面跑的就是刚才那份程序。PC 保存下一条指令的地址。刚才的暂存格在这里叫累加寄存器 ACC，保存取出的数或结果。高亮内存行表示当前访问的位置。</p>
 <h3>点一步，看看指令怎样推进</h3>
 <label>修改程序 <select id="operation"><option value="ADD">相加 2 + 3</option><option value="SUB">相减 2 − 3</option></select></label>
 <ol id="cpu-flow" aria-label="指令执行路径">
@@ -256,29 +261,21 @@ section{scroll-margin-top:12px}details{margin-top:14px}
 <details><summary>控制器、寄存器、运算器怎么分工？</summary>
 <p>控制器用 PC 取指并译码。寄存器保存当前地址和中间结果。算术逻辑单元按指令执行加减。教学机用助记符显示指令，实际硬件依据指令编码识别操作与操作数。</p>
 </details>
-<details class="players"><summary>产业与研究展签</summary><p><strong>Busicom × Intel · 从计算器需求到微处理器</strong>　Busicom 的计算器项目促成 Intel 4004。1971 年发布的 4004 把 CPU 集成到单颗芯片。<a href="https://www.intel.com/content/www/us/en/history/virtual-vault/articles/the-intel-4004.html">Intel 档案</a></p></details>
+<details class="players"><summary>产业与研究展签</summary><p><strong>Busicom × Intel · 从计算器需求到微处理器</strong>　Busicom 的计算器项目促成 Intel 4004。CPU 的功能可以由多个器件组成。1971 年发布的 4004 将 CPU 集成到单颗芯片，成为微处理器的历史案例。<a href="https://www.intel.com/content/www/us/en/history/virtual-vault/articles/the-intel-4004.html">Intel 档案</a></p></details>
 <a class="continue" href="#software">四条指令已经要逐条安排，复杂任务怎么办？ ↓</a></section>
 <h2 id="next">从一条指令到软硬件协作</h2>
 <section id="software">
 <h2>每道题都要逐条写这些指令吗？</h2>
 <p>刚才手动安排了取数、计算和保存。编程语言让人用更接近问题的表达来写程序，再由编译器生成目标机器的指令。</p>
 <div class="recipe"><span>源代码<br><code>sum = a + b</code></span><span>编译器<br>选择并安排指令</span><span>机器程序<br>LOAD → ADD → STORE</span></div>
-<a class="continue" href="#instruction-contract">编译器怎样知道 ADD 会产生什么结果？ ↓</a>
-</section>
-<section id="instruction-contract">
-<h2>一条 ADD，究竟约定了什么？</h2>
-<p>回到教学机的 ADD 5。这里的 5 是地址，地址 5 里的数是 3。ACC 初始为 2。</p>
-<div class="recipe"><span>执行前<br>ACC = 2<br>内存[5] = 3</span><span>指令<br><code>ADD 5</code><br>把内存[5]加到 ACC</span><span>执行后<br>ACC = 5<br>内存[5]仍为 3</span></div>
-<p>指令规定软件能观察到的行为。在真实 ISA 中，还需要规定操作数宽度、结果溢出、标志位等细节。</p>
-<details><summary>从一条指令到一套指令集</summary><p>LOAD 规定怎样取数，ADD 规定怎样相加，STORE 规定怎样写入，跳转指令规定怎样改变执行位置。ISA（指令集体系结构）把指令及编码、可见寄存器和相关行为组织成软硬件共同遵守的约定。</p><a href="https://riscv.org/specifications/ratified/">继续读 RISC-V 官方规范</a></details>
-<a class="continue" href="#microarchitecture">结果约定好了，内部一定只有一种做法吗？ ↓</a>
+<details><summary>从一条指令到一套指令集</summary><p>LOAD 规定怎样取数，ADD 规定怎样相加，STORE 规定怎样写入，跳转指令规定怎样改变执行位置。ISA（指令集体系结构）把指令及编码、可见寄存器和相关行为组织成软硬件共同遵守的约定。</p><a href="https://riscv.org/specifications/ratified/">继续读 RISC-V 官方规范</a></details><a class="continue" href="#microarchitecture">指令行为相同，内部做法也必须相同吗？ ↓</a>
 </section>
 <section id="microarchitecture">
 <h2>同一条加法，内部可以怎样完成？</h2>
-<p>用两位十进制加法看内部设计。两台教学装置都要算出 28 + 35 = 63。</p>
-<div class="recipe"><span><b>装置 A · 复用一个加法单元</b><br>先算个位 8 + 5，留下 3 并保存进位。再算十位 2 + 3 + 1，得到 6。</span><span><b>装置 B · 两个数位的电路连接</b><br>个位与十位各有运算电路，进位沿连接传到十位，形成结果 63。</span></div>
+<p>仍然算 2 + 3。下面两种教学安排都执行同一条加法，得到 5。</p>
+<div class="recipe"><span><b>安排 A · 共用一条传送路径</b><br>先把 2 送入运算器，再把 3 送入，完成加法。</span><span><b>安排 B · 两条输入路径</b><br>用两条路径把 2 和 3 送入运算器，再完成加法。</span></div>
 <p>两者的计算结果相同，电路数量和完成过程不同。微架构就是处理器内部的具体组织，包括运算单元、寄存器、数据通路和控制方式。</p>
-<details><summary>为什么同一 ISA 能有不同处理器？</summary><p>软件按 ISA 依赖指令行为。设计者可以在满足这些行为的前提下改变内部组织，以适应面积、能耗和性能目标。上面的十进制装置用于解释资源复用，真实数字处理器通常在二进制电路上实现运算。</p></details>
+<details><summary>为什么同一 ISA 能有不同处理器？</summary><p><strong>IBM · System/360</strong>　让同一系列的不同机型共享架构，体现软件兼容与硬件实现的分离。<a href="https://www.computerhistory.org/timeline/computers/">CHM 时间线</a></p><p>软件按 ISA 依赖指令行为。设计者可以在满足这些行为的前提下改变内部组织，以适应面积、能耗和性能目标。这里比较数据传送安排，实际耗时还取决于电路、时钟和存储访问。</p></details>
 <a class="continue" href="#pipeline">如果接连执行很多条指令，哪些部件会闲着？ ↓</a>
 </section>
 <section id="pipeline">
@@ -295,10 +292,10 @@ section{scroll-margin-top:12px}details{margin-top:14px}
 <div class="chain tiles">
 <div><b>ADD × 4</b><small>标量 · 分别表达四组加法</small></div>
 <div><b>VADD × 1</b><small>向量 · 一次表达四组加法</small></div>
-<div><b>提交加法任务</b><small>卸载 · 由另一执行单元接手</small></div>
+<div><b>交给独立加速器</b><small>卸载 · 由另一执行单元接手</small></div>
 </div>
 <p class="next">标量加法逐项表达操作。SIMD 扩展了指令的表达能力，相应硬件提供多个数据通道。独立加速器则需要 CPU 提交任务，进入跨单元协作。</p>
-<div class="execution">
+<details><summary>探索不同硬件的执行动画与产业故事</summary><div class="execution">
 <div class="eyebrow">EXECUTION EXPLORER</div>
 <h3>一眼看懂数据怎样穿过硬件</h3>
 <div id="hardware-tabs" class="hardware-tabs" aria-label="选择计算范式"></div>
@@ -322,14 +319,14 @@ section{scroll-margin-top:12px}details{margin-top:14px}
 </tbody></table></div>
 <p>这些维度可以重叠。例如 DSP 也可以有 SIMD 指令。选型要回到具体实现和负载。</p>
 </details>
-<details class="players"><summary>产业与研究展签</summary><p><strong>IBM · System/360</strong>　让同一系列的不同机型共享架构，体现软件兼容与硬件实现的分离。<a href="https://www.computerhistory.org/timeline/computers/">CHM 时间线</a></p>
+<details class="players"><summary>产业与研究展签</summary>
 <p><strong>Acorn → Arm · 处理器架构产业化</strong>　Arm 于 1990 年由 Acorn、Apple 与 VLSI Technology 合资成立。<a href="https://newsroom.arm.com/blog/arm-official-history">Arm 档案</a></p>
 <p><strong>NVIDIA · GPU</strong>　CUDA 将 GPU 并行计算能力开放给通用计算程序。<a href="https://developer.nvidia.com/cuda/faq">CUDA</a></p>
 <p><strong>Xilinx（现属 AMD）· FPGA</strong>　XC2064 是早期商用 FPGA，展示了交付后仍可配置的逻辑电路。<a href="https://www.amd.com/en/blogs/2025/from-invention-to-ai-acceleration--celebrating-40-years-of-fpga-.html">AMD 档案</a></p></details>
-<a class="continue" href="#product-map">这些执行方式怎样组合进真实芯片？ ↓</a></section>
+</details><a class="continue" href="#product-map">这些执行方式怎样组合进真实芯片？ ↓</a></section>
 <section id="product-map">
 <div class="eyebrow">真实产品</div>
-<h2>一颗芯片里有哪些帮手？</h2>
+<h2>一颗芯片怎样组合这些执行资源？</h2>
 <p>刚才的动画一次展示一种执行方式。选一颗真实芯片，看看主核和哪些专用单元会同时出现在里面。</p>
 <label>产品 <select id="product-select"></select></label>
 <div class="product-grid" id="product-layout" aria-live="polite"></div>
@@ -342,20 +339,20 @@ section{scroll-margin-top:12px}details{margin-top:14px}
 <a class="continue" href="#runtime">选好了执行资源，软件怎样把工作交过去？ ↓</a></section>
 <section id="runtime">
 <div class="eyebrow">软件交接</div>
-<h2>CPU 怎样把任务交给加速器？</h2><p>主核用自己的向量指令就能开始计算。让独立加速器接手时，软件还要交代输入放在哪里、结果何时可读。</p>
-<div class="chain tiles"><div><b>提交</b><small>任务描述、精度、截止期</small></div><span>→</span><div><b>排队 · 准备</b><small>选择后端、明确缓冲区归属</small></div><span>→</span><div><b>执行</b><small>驱动触发、监测超时</small></div><span>→</span><div><b>完成</b><small>同步结果、记录指标</small></div></div>
-<p class="next">中间件统一交接流程，后端声明自己的能力和限制。</p>
+<h2>CPU 怎样把任务交给加速器？</h2><p>同一批加法交给独立单元时，要先准备数据、发送任务、等待结果。每一步都需要时间。</p>
+<div class="chain tiles"><div><b>提交</b><small>告诉它算什么</small></div><span>→</span><div><b>排队 · 准备</b><small>准备输入数据</small></div><span>→</span><div><b>执行</b><small>发出任务并等待</small></div><span>→</span><div><b>完成</b><small>取回结果</small></div></div>
+<p class="next">展开工程方案，可看软件怎样管理这些交接。</p>
 <details><summary>汽车 MCU 项目方案 · 展开分层</summary>
 <p>应用 SWC → RTE → 项目级 CDD → 后端适配器 → Runtime / Driver → 执行单元</p>
 <p>公共层管理任务状态和完成通知。适配层处理支持的算子、数据布局、对齐和同步。上线前验证资源隔离、故障处理和最坏响应时间。</p>
 </details>
 <details class="players"><summary>产业与研究展签</summary><p><strong>Infineon · AURIX TC49x</strong>　PPU 有自己的标量核心和向量单元，适合对照页面中的「CPU 内 SIMD」与「独立后端卸载」。<a href="https://www.infineon.com/products/microcontroller/32-bit-tricore/aurix-tc4x/tc49x">Infineon 产品资料</a></p></details>
 </section>
-<h2 id="measure">Ⅲ · 怎样判断更快</h2>
+<h2 id="measure">怎样判断更快</h2>
 <section>
 <div class="eyebrow">验证收益</div>
 <h2>用了加速器，结果一定更早到吗？</h2>
-<p><small>教学假设。CPU 每项 4 μs，加速器每项 1 μs，提交固定 12 μs。</small></p>
+<p><small>继续看同一批加法。条形图把发任务、等待、搬运和计算的时间加起来。μs 表示微秒。下列数值是教学假设：CPU 每项 4 μs，加速器每项 1 μs，发任务固定 12 μs。</small></p>
 <label>批量 <input id="batch" type="range" min="1" max="64" value="16"> <span id="batch-value"></span></label>
 <label>排队 μs <input id="queue" type="range" min="0" max="120" value="10"> <span id="queue-value"></span></label>
 <label>双向搬运 μs <input id="transfer" type="range" min="0" max="120" value="20"> <span id="transfer-value"></span></label>
@@ -419,7 +416,7 @@ tapeStep.onclick = () => {
 document.querySelector('#tape-reset').onclick = () => {
     head = 0;
     stopped = false;
-    tapeState.textContent = '扫描态 · 读到 1 就右移，读到空白就写 1 并停机。';
+    tapeState.textContent = '正在扫描 · 看到 1 右移，看到空白写 1 并停下。';
     showTape();
 };
 
@@ -700,7 +697,7 @@ function showLogic() {
     const result = { and: a && b, or: a || b, not: !a }[rule];
     logicInputs[1].disabled = rule === 'not';
     const expression = rule === 'not' ? '¬' + Number(a) : Number(a) + (rule === 'and' ? ' ∧ ' : ' ∨ ') + Number(b);
-    byId('logic-result').textContent = expression + ' = ' + Number(result) + (result ? ' · 💡 灯亮' : ' · ○ 灯灭');
+    byId('logic-result').textContent = expression + ' = ' + Number(result) + (result ? ' · 💡 真' : ' · ○ 假');
 }
 logicInputs.forEach((button, index) => {
     button.onclick = () => {
@@ -714,8 +711,9 @@ logicRule.onchange = showLogic;
 showLogic();
 
 let bags = 0;
+const flockChecks = ['甲：2 = 2，数量对上', '乙：2 < 3，少 1 只，需要寻找', '丙：1 = 1，数量对上'];
 function showRecipe() {
-    byId('recipe-result').textContent = '已核对 ' + bags + ' / 3 群 · 已归总数 ' + bags * 2 + ' 只' + (bags === 3 ? ' · 结束' : '');
+    byId('recipe-result').textContent = flockChecks.slice(0, bags).join('；') || '尚未核对';
     byId('recipe-step').disabled = bags === 3;
 }
 byId('recipe-step').onclick = () => { bags++; showRecipe(); };
