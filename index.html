@@ -150,23 +150,34 @@ section{scroll-margin-top:12px}details{margin-top:14px}
 </section>
 <section id="carry">
 <div class="eyebrow">03 · 规则</div>
-<h2>有了数字，怎么算出结果？</h2>
-<p>进制约定数字怎么写。加法规则告诉我们加 1 后怎么更新数字。十进制逢十进一，二进制逢二进一。同样是从 1 加到 2，十进制写作 2，二进制写作 10。</p><div class="model digits"><span>十位</span><output id="tens">0</output><span>个位</span><output id="ones">8</output></div>
-<button id="add-one">加 1</button> <button id="reset-count">重来</button>
-<p id="carry-note" class="next" aria-live="polite">每满十个一，换成一个十。</p>
-<h3>拨动开关，算出一个判断</h3>
+<h2>记录下来的数量，怎样继续用？</h2>
+<p>已回来三只羊，又回来一只。记录也要跟着更新。</p>
+<div class="recipe"><span>原来<br>● ● ●<br>3 只</span><span>又回来一只<br>●<br>加 1</span><span>现在<br>● ● ● ●<br>4 只</span></div>
+<h3>继续加，到九只之后呢？</h3>
+<p>从 3 开始点「回来一只」。到 9 再加 1，观察两个数位怎样变化。</p>
+<div class="model digits"><span>十位</span><output id="tens">0</output><span>个位</span><output id="ones">3</output></div>
+<button id="add-one">回来一只 · 加 1</button> <button id="reset-count">重来</button>
+<p id="carry-note" class="next" aria-live="polite">当前记录 3 只，继续加到 10 只。</p>
+<details><summary>为什么 9 之后写成 10？</summary><p>十进制用 0 到 9 表示一个数位。十个一换成一个十，所以个位回到 0，十位加 1。二进制每满二就进位，同样的数量二写成 10₂。进制约定数量怎样表示。</p></details>
+<h3>出栏四只，回来几只才算齐？</h3>
+<label>已归数量 <select id="returned-count"><option>3</option><option>4</option><option>5</option></select></label>
+<output id="count-check" aria-live="polite"></output>
+<p>比较规则把两个数量变成一个判断。相等时，可以判为数量对上了。</p>
+<h3>两群羊，怎样判断都归齐了？</h3>
+<p>A 表示甲群数量对上，B 表示乙群数量对上。要判定两群都归齐，试着选择「且」。</p>
+
 <label>规则 <select id="logic-rule"><option value="and">且 AND · 两个都开</option><option value="or">或 OR · 至少一个开</option><option value="not">非 NOT · 反转 A</option></select></label>
-<div><button type="button" id="logic-a" aria-pressed="false">A · 关</button> <button type="button" id="logic-b" aria-pressed="false">B · 关</button></div>
+<div><button type="button" id="logic-a" aria-pressed="false">甲群 A · 未对上</button> <button type="button" id="logic-b" aria-pressed="false">乙群 B · 未对上</button></div>
 <p><output id="logic-result" aria-live="polite"></output></p>
-<p>试试只打开 A，再从「且」换到「或」。输入相同，换一条规则就可能得到不同结果。</p><details><summary>布尔和香农 · 怎样计算一个判断？</summary><p>门关好、钥匙有效，两项都成立才允许启动。这是逻辑里的「且」。19 世纪，布尔把逻辑推理写成代数。1937 年，香农在 MIT 的硕士论文里把这套代数用到继电器电路。想象电话交换设备里的触点：串联时两个开关都闭合才通，像「且」。并联时有一条支路闭合就通，像「或」。</p><a href="https://www.computerhistory.org/revolution/digital-logic/12/269">计算机历史博物馆 · 布尔逻辑</a></details><details><summary>进位怎样交给装置？</summary><p>只要按同一记数约定操作，进位就会反复出现。让相邻数位的机构联动，可以减少手动操作和漏进位。</p></details>
-<a class="continue" href="#algorithm">有了单步规则，怎样组织整套步骤？ ↓</a></section>
+<p>先让甲群对上，再让乙群对上。「且」要求两项都成立，「或」要求至少一项成立，「非」反转甲群的判断。</p><details><summary>布尔和香农 · 怎样计算一个判断？</summary><p>门关好、钥匙有效，两项都成立才允许启动。这是逻辑里的「且」。19 世纪，布尔把逻辑推理写成代数。1937 年，香农在 MIT 的硕士论文里把这套代数用到继电器电路。想象电话交换设备里的触点：串联时两个开关都闭合才通，像「且」。并联时有一条支路闭合就通，像「或」。</p><a href="https://www.computerhistory.org/revolution/digital-logic/12/269">计算机历史博物馆 · 布尔逻辑</a></details>
+<a class="continue" href="#algorithm">要核对很多群羊，怎样安排这些操作？ ↓</a></section>
 <section id="algorithm">
-<h2>会做加法，怎样算完一整笔账？</h2>
-<p>三袋粮，每袋两份。把「加 2」做三次，还需要记住做到哪一步。</p>
-<div class="recipe"><span>总数从 0 开始</span><span>取一袋 → 加 2</span><span>还有袋子？继续 ↺</span><span>没有了 → 结束</span></div>
-<button id="recipe-step">处理一袋</button> <button id="recipe-reset">重来</button>
+<h2>要核对三群羊，怎样把步骤安排好？</h2>
+<p>假设每群出栏两只，逐群清点。这个简化实验里每群都回来两只，要累加已归总数，并记住核对了几群。</p>
+<div class="recipe"><span>已归总数从 0 开始</span><span>核对一群 → 加 2</span><span>还有羊群？继续 ↺</span><span>没有了 → 结束</span></div>
+<button id="recipe-step">核对一群</button> <button id="recipe-reset">重来</button>
 <output id="recipe-result" aria-live="polite"></output>
-<p>算法把操作、顺序、重复和停止条件组织成可执行的步骤。袋数和总数是执行过程中要保存的状态。</p>
+<p>算法把操作、顺序、重复和停止条件组织成可执行的步骤。已核对的群数和已归总数是执行过程中要保存的状态。</p>
 <a class="continue" href="#machine">这些步骤，可以由装置来做吗？ ↓</a>
 </section><section id="machine">
 <div class="eyebrow">04 · 执行</div>
@@ -371,17 +382,17 @@ returnSheep.onclick = () => { remaining--; showSheep(); };
 document.querySelector('#reset-sheep').onclick = () => { remaining = 3; showSheep(); };
 
 const addOne = document.querySelector('#add-one');
-let count = 8;
+let count = 3;
 function showCount() {
     document.querySelector('#tens').textContent = Math.floor(count / 10);
     document.querySelector('#ones').textContent = count % 10;
     document.querySelector('#carry-note').textContent = count === 10
         ? '个位归零，十位加一。'
-        : '每满十个一，换成一个十。';
+        : '当前记录 ' + count + ' 只，继续观察数位变化。';
     addOne.disabled = count === 12;
 }
 addOne.onclick = () => { count++; showCount(); };
-document.querySelector('#reset-count').onclick = () => { count = 8; showCount(); };
+document.querySelector('#reset-count').onclick = () => { count = 3; showCount(); };
 
 const tape = document.querySelector('#tape');
 const tapeStep = document.querySelector('#tape-step');
@@ -695,7 +706,7 @@ logicInputs.forEach((button, index) => {
     button.onclick = () => {
         const on = button.getAttribute('aria-pressed') !== 'true';
         button.setAttribute('aria-pressed', on);
-        button.textContent = 'AB'[index] + (on ? ' · 开' : ' · 关');
+        button.textContent = ['甲群 A', '乙群 B'][index] + (on ? ' · 已对上' : ' · 未对上');
         showLogic();
     };
 });
@@ -704,7 +715,7 @@ showLogic();
 
 let bags = 0;
 function showRecipe() {
-    byId('recipe-result').textContent = '已处理 ' + bags + ' / 3 袋 · 总数 ' + bags * 2 + ' 份' + (bags === 3 ? ' · 结束' : '');
+    byId('recipe-result').textContent = '已核对 ' + bags + ' / 3 群 · 已归总数 ' + bags * 2 + ' 只' + (bags === 3 ? ' · 结束' : '');
     byId('recipe-step').disabled = bags === 3;
 }
 byId('recipe-step').onclick = () => { bags++; showRecipe(); };
@@ -717,6 +728,14 @@ taskOperation.onchange = () => {
     operation.value = taskOperation.value;
     resetCpu();
 };
+
+const returnedCount = byId('returned-count');
+function showCountCheck() {
+    const count = Number(returnedCount.value);
+    byId('count-check').textContent = count + ' 与 4 比较 → ' + (count === 4 ? '相等 · 数量对上' : count < 4 ? '少 1 只 · 继续核对' : '多 1 只 · 继续核对');
+}
+returnedCount.onchange = showCountCheck;
+showCountCheck();
 </script>
 </body>
 </html>
